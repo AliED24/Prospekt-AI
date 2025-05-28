@@ -24,15 +24,28 @@ public class OpenAIFileService {
 
     private final WebClient webClient;
     private final OfferDataRepository repository;
-
-    @Value("${openai.prompt}")
-    private String fixedPrompt;
-
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    @Value("${openai.system-prompt}")
+    private String systemPrompt;
+
+    @Value("${openai.user-prompt}")
+    private String userPrompt;
+
+
+    // Erster Schritt: Datei hochladen und verarbeiten
+    /**
+     * Lädt eine Datei hoch und verarbeitet sie mit OpenAI.
+     *
+     * @param filePath der Pfad zur Datei, die hochgeladen werden soll
+     * @return ein Mono, das den Text der Antwort von OpenAI enthält
+     * @throws IOException wenn ein Fehler beim Lesen der Datei auftritt
+     */
     public Mono<String> uploadAndProcess(Path filePath) throws IOException {
         FileSystemResource fileResource = new FileSystemResource(filePath.toFile());
 
+        // MultiValueMap um die Datei und den Zweck zu senden. Ein Schlüssel ist "file" und der andere "purpose"
+        // Der kann mehrere Werte haben, aber hier nur einen.
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
         body.add("file", fileResource);
         body.add("purpose", "user_data");
@@ -47,26 +60,45 @@ public class OpenAIFileService {
                 .flatMap(this::askOpenAI);
     }
 
+
+    // Zweiter Schritt: OpenAI mit der hochgeladenen Datei anfragen
+    /**
+     * Fragt OpenAI mit der hochgeladenen Datei und dem Benutzer-Prompt an.
+     *
+     * @param fileId die ID der hochgeladenen Datei
+     * @return ein Mono, das den Text der Antwort von OpenAI enthält
+     */
+
     private Mono<String> askOpenAI(String fileId) {
+        // System-Prompt
+        ObjectNode systemMessage = objectMapper.createObjectNode();
+        systemMessage.put("role", "system");
+        systemMessage.put("content", systemPrompt);
+
+        // User-Prompt mit Datei
         ObjectNode contentFile = objectMapper.createObjectNode();
         contentFile.put("type", "input_file");
         contentFile.put("file_id", fileId);
 
         ObjectNode contentText = objectMapper.createObjectNode();
         contentText.put("type", "input_text");
-        contentText.put("text", fixedPrompt);
+        contentText.put("text", userPrompt);
 
         ArrayNode contentArray = objectMapper.createArrayNode();
         contentArray.add(contentFile);
         contentArray.add(contentText);
 
-        ObjectNode message = objectMapper.createObjectNode();
-        message.put("role", "user");
-        message.set("content", contentArray);
+        ObjectNode userMessage = objectMapper.createObjectNode();
+        userMessage.put("role", "user");
+        userMessage.set("content", contentArray);
+
+        ArrayNode inputArray = objectMapper.createArrayNode();
+        inputArray.add(systemMessage);
+        inputArray.add(userMessage);
 
         ObjectNode request = objectMapper.createObjectNode();
-        request.put("model", "gpt-4.1");
-        request.set("input", objectMapper.createArrayNode().add(message));
+        request.put("model", "gpt-4o-mini");
+        request.set("input", inputArray);
 
         return webClient.post()
                 .uri("/responses")
@@ -75,7 +107,6 @@ public class OpenAIFileService {
                 .retrieve()
                 .bodyToMono(JsonNode.class)
                 .map(json -> {
-                    // Beispiel: JSON parsen und speichern (hier nur Dummy-Eintrag)
                     OfferData data = OfferData.builder()
                             .productName("Beispielprodukt")
                             .brand("Beispielmarke")
