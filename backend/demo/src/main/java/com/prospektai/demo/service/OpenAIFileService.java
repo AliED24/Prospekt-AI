@@ -44,8 +44,6 @@ public class OpenAIFileService {
     public Mono<String> uploadAndProcess(Path filePath) throws IOException {
         FileSystemResource fileResource = new FileSystemResource(filePath.toFile());
 
-        // MultiValueMap um die Datei und den Zweck zu senden. Ein Schlüssel ist "file" und der andere "purpose"
-        // Der kann mehrere Werte haben, aber hier nur einen.
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
         body.add("file", fileResource);
         body.add("purpose", "user_data");
@@ -107,15 +105,25 @@ public class OpenAIFileService {
                 .retrieve()
                 .bodyToMono(JsonNode.class)
                 .map(json -> {
-                    OfferData data = OfferData.builder()
-                            .productName("Beispielprodukt")
-                            .brand("Beispielmarke")
-                            .quantity("500g")
-                            .price("1.99€")
-                            .offerDate("01.01.2025")
-                            .build();
-                    repository.save(data);
-                    return json.get("output_text").asText();
+                    String outputText = json.get("output_text").asText();
+                    try {
+                        // Erwartet, dass outputText ein JSON-Array ist
+                        ArrayNode angebote = (ArrayNode) objectMapper.readTree(outputText);
+                        for (JsonNode angebot : angebote) {
+                            OfferData data = OfferData.builder()
+                                    .productName(angebot.get("productName").asText())
+                                    .brand(angebot.get("brand").asText())
+                                    .quantity(angebot.get("quantity").asText())
+                                    .price(angebot.get("price").asText())
+                                    .offerDate(angebot.get("offerDate").asText())
+                                    .build();
+                            repository.save(data);
+                        }
+                    } catch (Exception e) {
+                        // Fehler beim Parsen oder Speichern
+                        e.printStackTrace();
+                    }
+                    return outputText; // Gibt den kompletten Response zurück
                 });
     }
 
