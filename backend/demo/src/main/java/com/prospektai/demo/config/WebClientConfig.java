@@ -16,7 +16,7 @@ public class WebClientConfig {
     private String apiKey;
 
     @Bean
-    public WebClient openAiWebClient() {
+    public WebClient webClient() {
         return WebClient.builder()
                 .baseUrl("https://api.edeka.digital/ai-dev-models/gen/oai")
                 .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey)

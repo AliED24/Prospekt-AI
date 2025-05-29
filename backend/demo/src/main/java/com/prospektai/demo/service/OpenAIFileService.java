@@ -18,13 +18,13 @@ import java.nio.file.Path;
 import java.util.*;
 import com.prospektai.demo.repository.OfferDataRepository;
 
-@Service
 @RequiredArgsConstructor
+@Service
 public class OpenAIFileService {
 
     private final WebClient webClient;
     private final OfferDataRepository repository;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private  ObjectMapper objectMapper = new ObjectMapper();
 
     @Value("${openai.system-prompt}")
     private String systemPrompt;
@@ -33,14 +33,6 @@ public class OpenAIFileService {
     private String userPrompt;
 
 
-    // Erster Schritt: Datei hochladen und verarbeiten
-    /**
-     * Lädt eine Datei hoch und verarbeitet sie mit OpenAI.
-     *
-     * @param filePath der Pfad zur Datei, die hochgeladen werden soll
-     * @return ein Mono, das den Text der Antwort von OpenAI enthält
-     * @throws IOException wenn ein Fehler beim Lesen der Datei auftritt
-     */
     public Mono<String> uploadAndProcess(Path filePath) throws IOException {
         FileSystemResource fileResource = new FileSystemResource(filePath.toFile());
 
@@ -59,21 +51,12 @@ public class OpenAIFileService {
     }
 
 
-    // Zweiter Schritt: OpenAI mit der hochgeladenen Datei anfragen
-    /**
-     * Fragt OpenAI mit der hochgeladenen Datei und dem Benutzer-Prompt an.
-     *
-     * @param fileId die ID der hochgeladenen Datei
-     * @return ein Mono, das den Text der Antwort von OpenAI enthält
-     */
-
     private Mono<String> askOpenAI(String fileId) {
         // System-Prompt
         ObjectNode systemMessage = objectMapper.createObjectNode();
         systemMessage.put("role", "system");
         systemMessage.put("content", systemPrompt);
 
-        // User-Prompt mit Datei
         ObjectNode contentFile = objectMapper.createObjectNode();
         contentFile.put("type", "input_file");
         contentFile.put("file_id", fileId);
@@ -120,10 +103,9 @@ public class OpenAIFileService {
                             repository.save(data);
                         }
                     } catch (Exception e) {
-                        // Fehler beim Parsen oder Speichern
                         e.printStackTrace();
                     }
-                    return outputText; // Gibt den kompletten Response zurück
+                    return outputText;
                 });
     }
 
