@@ -32,7 +32,6 @@ public class OpenAIFileService {
     @Value("${openai.user-prompt}")
     private String userPrompt;
 
-
     public Mono<String> uploadAndProcess(Path filePath) throws IOException {
         FileSystemResource fileResource = new FileSystemResource(filePath.toFile());
 
@@ -90,7 +89,6 @@ public class OpenAIFileService {
                 .map(json -> {
                     String outputText = json.get("output_text").asText();
                     try {
-                        // Erwartet, dass outputText ein JSON-Array ist
                         ArrayNode angebote = (ArrayNode) objectMapper.readTree(outputText);
                         for (JsonNode angebot : angebote) {
                             OfferData data = OfferData.builder()

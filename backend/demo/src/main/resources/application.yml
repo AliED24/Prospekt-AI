@@ -1,9 +1,21 @@
 spring:
   application:
     name: demo
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/meinedb
+    username: meinuser
+    password: meinpasswort
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+
   ai:
     openai:
       api-key: sk-KSwgEWNWAZtCaawAuhp7CA
+      base-url: https://api.edeka.digital/ai-dev-models/gen/oai
 
 openai:
   system-prompt: >

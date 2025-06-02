@@ -6,6 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 
+
 import java.nio.file.Path;
 
 @SpringBootApplication
@@ -16,12 +17,12 @@ public class PdfAiApplication {
 	}
 
 	@Bean
-	CommandLineRunner testOpenAI(OpenAIFileService fileService) {
+	CommandLineRunner testOpenAI(OpenAIFileService fileService)  {
 		return args -> {
-			Path pfad = Path.of("Prospekt-AI/backend/aldi_prospekt.pdf"); // Passe den Pfad an!
+			Path pfad = Path.of("uploads", "aldi_prospekt.pdf");
 			fileService.uploadAndProcess(pfad)
 					.doOnNext(System.out::println)
-					.block(); // Nur für Testzwecke synchron blockieren!
+					.block();
 		};
 	}
 }

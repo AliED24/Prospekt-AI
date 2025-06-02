@@ -6,19 +6,20 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.web.reactive.function.client.WebClient;
 
 
-// Stellt einstellung für Spring WebClient bereit, um mit der OpenAI API zu kommunizieren.
-// Diese Konfiguration ermöglicht es, Anfragen an die OpenAI API
-// zu senden, indem der API-Schlüssel aus den Anwendungseigenschaften verwendet wird.
+
 @Configuration
 public class WebClientConfig {
 
-    @Value("${openai.api.key}")
+    @Value("${spring.ai.openai.api-key}")
     private String apiKey;
 
+    @Value("${spring.ai.openai.base-url}")
+    private String baseUrl;
+
     @Bean
-    public WebClient webClient() {
+    public WebClient openAIClient() {
         return WebClient.builder()
-                .baseUrl("https://api.edeka.digital/ai-dev-models/gen/oai")
+                .baseUrl(baseUrl)
                 .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey)
                 .build();
     }

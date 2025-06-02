@@ -2,7 +2,6 @@ package com.prospektai.demo.controller;
 import com.prospektai.demo.model.*;
 import com.prospektai.demo.service.*;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,7 +18,6 @@ import java.util.*;
 public class UploadController {
 
     private final OpenAIFileService fileService;
-
 
     @PostMapping("/upload")
     public Mono<ResponseEntity<String>> uploadFile(@RequestPart("file") MultipartFile file) throws IOException {
