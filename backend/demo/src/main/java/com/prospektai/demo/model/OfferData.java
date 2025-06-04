@@ -15,6 +15,7 @@ public class OfferData {
     private String brand;
     private String quantity;
     private String price;
+    private String originalPrice;
     private String offerDate;
 }
 

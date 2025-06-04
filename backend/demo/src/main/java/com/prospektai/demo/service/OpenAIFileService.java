@@ -1,15 +1,12 @@
 package com.prospektai.demo.service;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.*;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import com.prospektai.demo.model.OfferData;
@@ -24,86 +21,99 @@ public class OpenAIFileService {
 
     private final WebClient webClient;
     private final OfferDataRepository repository;
-    private  ObjectMapper objectMapper = new ObjectMapper();
+    private ObjectMapper objectMapper = new ObjectMapper();
+    Logger log = org.slf4j.LoggerFactory.getLogger(OpenAIFileService.class);
 
-    @Value("${openai.system-prompt}")
+    @Value("${spring.ai.openai.system-prompt}")
     private String systemPrompt;
 
-    @Value("${openai.user-prompt}")
+    @Value("${spring.ai.openai.user-prompt}")
     private String userPrompt;
 
     public Mono<String> uploadAndProcess(Path filePath) throws IOException {
-        FileSystemResource fileResource = new FileSystemResource(filePath.toFile());
+        byte[] fileBytes = java.nio.file.Files.readAllBytes(filePath);
+        String base64 = Base64.getEncoder().encodeToString(fileBytes);
+        base64 = base64.replaceAll("\\s+", "");
+        String dataUrl = String.format("data:application/pdf;base64,%s", base64);
 
-        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-        body.add("file", fileResource);
-        body.add("purpose", "user_data");
-
-        return webClient.post()
-                .uri("/files")
-                .contentType(MediaType.MULTIPART_FORM_DATA)
-                .body(BodyInserters.fromMultipartData(body))
-                .retrieve()
-                .bodyToMono(JsonNode.class)
-                .map(json -> json.get("id").asText())
-                .flatMap(this::askOpenAI);
-    }
-
-
-    private Mono<String> askOpenAI(String fileId) {
         // System-Prompt
         ObjectNode systemMessage = objectMapper.createObjectNode();
         systemMessage.put("role", "system");
         systemMessage.put("content", systemPrompt);
 
-        ObjectNode contentFile = objectMapper.createObjectNode();
-        contentFile.put("type", "input_file");
-        contentFile.put("file_id", fileId);
+        // User Message: Text
+        ObjectNode textPart = objectMapper.createObjectNode();
+        textPart.put("type", "text");
+        textPart.put("content", userPrompt);
 
-        ObjectNode contentText = objectMapper.createObjectNode();
-        contentText.put("type", "input_text");
-        contentText.put("text", userPrompt);
+        // User Message: PDF als "image_url" mit data-URL
+        ObjectNode filePart = objectMapper.createObjectNode();
+        filePart.put("type", "image_url");
+        ObjectNode fileUrl = filePart.putObject("image_url");
+        fileUrl.put("format", "application/pdf");
+        fileUrl.put("url", dataUrl);
 
+        // Array von Content-Bausteinen
         ArrayNode contentArray = objectMapper.createArrayNode();
-        contentArray.add(contentFile);
-        contentArray.add(contentText);
+        contentArray.add(textPart);
+        contentArray.add(filePart);
 
         ObjectNode userMessage = objectMapper.createObjectNode();
         userMessage.put("role", "user");
         userMessage.set("content", contentArray);
 
-        ArrayNode inputArray = objectMapper.createArrayNode();
-        inputArray.add(systemMessage);
-        inputArray.add(userMessage);
+        // Full message array
+        ArrayNode messages = objectMapper.createArrayNode();
+        messages.add(systemMessage);
+        messages.add(userMessage);
 
-        ObjectNode request = objectMapper.createObjectNode();
-        request.put("model", "gpt-4o-mini");
-        request.set("input", inputArray);
+        ObjectNode payload = objectMapper.createObjectNode();
+        payload.put("model", "gemini-2.0-flash");
+        payload.set("messages", messages);
+//
+//        // Vollständige Payload mit gekürztem Base64
+//        ObjectNode fullPreview = payload.deepCopy();
+//        ObjectNode fullPreviewUserMessage = (ObjectNode) ((ArrayNode) fullPreview.get("messages")).get(1);
+//        ArrayNode fullPreviewContentArray = (ArrayNode) fullPreviewUserMessage.get("content");
+//        ObjectNode fullPreviewFilePart = (ObjectNode) fullPreviewContentArray.get(1);
+//        ObjectNode fullPreviewImageUrl = (ObjectNode) fullPreviewFilePart.get("image_url");
+//        String fullUrl = fullPreviewImageUrl.get("url").asText();
+//        String truncatedUrl = fullUrl.substring(0, Math.min(30, fullUrl.length())) + "...";
+//        fullPreviewImageUrl.put("url", truncatedUrl);
+//        System.out.println("Vollständiger Payload (Base64 gekürzt):\n" + fullPreview.toPrettyString());
 
         return webClient.post()
-                .uri("/responses")
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(request)
-                .retrieve()
-                .bodyToMono(JsonNode.class)
-                .map(json -> {
-                    String outputText = json.get("output_text").asText();
-                    try {
-                        ArrayNode angebote = (ArrayNode) objectMapper.readTree(outputText);
-                        for (JsonNode angebot : angebote) {
-                            OfferData data = OfferData.builder()
-                                    .productName(angebot.get("productName").asText())
-                                    .brand(angebot.get("brand").asText())
-                                    .quantity(angebot.get("quantity").asText())
-                                    .price(angebot.get("price").asText())
-                                    .offerDate(angebot.get("offerDate").asText())
-                                    .build();
-                            repository.save(data);
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                .uri("/chat/completions")
+                .bodyValue(payload)
+                .exchangeToMono(response -> {
+                    if (response.statusCode().isError()) {
+                        return response.bodyToMono(String.class)
+                                .flatMap(bodyText -> {
+                                    log.error("API-Fehler: HTTP {} – Response-Body:\n{}", response.statusCode(), bodyText);
+                                    return Mono.error(new RuntimeException("OpenAI-API-Fehler: " + bodyText));});
+                    } else {
+                        return response.bodyToMono(JsonNode.class)
+                                .map(jsonNode -> {
+                                    try {
+                                        String content = jsonNode.get("choices").get(0)
+                                                .get("message").get("content").asText()
+                                                .replace("```json\n", "")
+                                                .replace("\n```", "");
+
+                                        List<OfferData> offers = objectMapper.readValue(content,
+                                                objectMapper.getTypeFactory().constructCollectionType(
+                                                        List.class, OfferData.class));
+
+                                        repository.saveAll(offers);
+                                        log.info("{} Angebote gespeichert", offers.size());
+
+                                        return jsonNode.toPrettyString();
+                                    } catch (Exception e) {
+                                        log.error("Fehler beim Speichern der Angebote", e);
+                                        return jsonNode.toPrettyString();
+                                    }
+                                });
                     }
-                    return outputText;
                 });
     }
 

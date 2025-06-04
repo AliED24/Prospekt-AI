@@ -1,24 +1,26 @@
 spring:
   application:
     name: demo
-
   datasource:
     url: jdbc:postgresql://localhost:5432/meinedb
     username: meinuser
     password: meinpasswort
     driver-class-name: org.postgresql.Driver
-
   jpa:
     hibernate:
       ddl-auto: update
-
   ai:
     openai:
-      api-key: sk-KSwgEWNWAZtCaawAuhp7CA
+      api-key: sk-3LGN0Yu3GsMNhofADG9H2A
       base-url: https://api.edeka.digital/ai-dev-models/gen/oai
+      system-prompt: >
+        You are a system for offer recognition. Extract all promotional items from the uploaded PDF and return them as JSON objects. 
+         Only include these exact fields: productName, brand, quantity, price, originalPrice, and offerDate.
+      user-prompt: >
+        Please extract all offers from the file and return them as a list of JSON objects including product name, brand, quantity, price, and offer date.
 
-openai:
-  system-prompt: >
-    Du bist ein System zur Angebotserkennung. Extrahiere alle Angebotsartikel aus der hochgeladenen PDF und gib sie als JSON-Objekte mit allen zugehörigen Daten zurück.
-  user-prompt: >
-    Bitte extrahiere alle Angebote aus der Datei und gib sie als Liste von JSON-Objekten mit Produktname, Marke, Menge, Preis und Angebotsdatum zurück.
+
+logging:
+  level:
+    reactor.netty.http.client: DEBUG
+    org.springframework.web.reactive.function.client: DEBUG

@@ -17,10 +17,11 @@ public class WebClientConfig {
     private String baseUrl;
 
     @Bean
-    public WebClient openAIClient() {
+    public WebClient client() {
         return WebClient.builder()
                 .baseUrl(baseUrl)
                 .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey)
+                .defaultHeader(HttpHeaders.CONTENT_TYPE, "application/json")
                 .build();
     }
 }
