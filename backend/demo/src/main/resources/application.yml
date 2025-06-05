@@ -1,14 +1,22 @@
 spring:
   application:
     name: demo
+
   datasource:
     url: jdbc:postgresql://localhost:5432/meinedb
     username: meinuser
     password: meinpasswort
     driver-class-name: org.postgresql.Driver
+
   jpa:
     hibernate:
       ddl-auto: update
+
+  servlet:
+    multipart:
+      max-file-size: 200MB
+      max-request-size: 200MB
+
   ai:
     openai:
       api-key: sk-3LGN0Yu3GsMNhofADG9H2A
@@ -20,8 +28,12 @@ spring:
       user-prompt: >
         Please extract all offers from the file and return them as a list of JSON objects including product name, brand, quantity, price, and offer date.
 
-
 logging:
   level:
     reactor.netty.http.client: DEBUG
     org.springframework.web.reactive.function.client: DEBUG
+
+server:
+  tomcat:
+    max-swallow-size: 209715200
+    max-http-form-post-size: 209715200
