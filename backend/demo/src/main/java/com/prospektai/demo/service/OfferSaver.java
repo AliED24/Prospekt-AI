@@ -1,4 +1,3 @@
-// src/main/java/com/prospektai/demo/service/OfferSaver.java
 package com.prospektai.demo.service;
 
 import com.prospektai.demo.model.OfferData;
@@ -15,13 +14,8 @@ import java.util.List;
 public class OfferSaver {
 
     private static final Logger log = LoggerFactory.getLogger(OfferSaver.class);
-
     private final OfferDataRepository repository;
 
-    /**
-     * Speichert alle OfferData-Objekte in der DB.
-     * @param offers Liste von OfferData
-     */
     public void saveAll(List<OfferData> offers) {
         if (offers == null || offers.isEmpty()) {
             log.warn("Keine Angebote zum Speichern erhalten.");

@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Base64;
@@ -35,20 +34,11 @@ public class OpenAiClient {
     @Value("${spring.ai.openai.model}")
     private String model;
 
-    /**
-     * Liest das Chunk-PDF, transformiert in Base64, sendet an OpenAI und parst das Ergebnis.
-     *
-     * @param chunkPath Pfad zu einer temporären PDF-Datei (Chunk).
-     * @return Liste von OfferData, die OpenAI zurückgibt.
-     * @throws Exception bei Lese- oder Netzwerkfehlern.
-     */
     public List<OfferData> extractOffers(Path chunkPath) throws Exception {
-        // 1) Bytes einlesen und Base64 kodieren
         byte[] bytes = Files.readAllBytes(chunkPath);
         String base64 = Base64.getEncoder().encodeToString(bytes).replaceAll("\\s+", "");
         String dataUrl = "data:application/pdf;base64," + base64;
 
-        // 2) JSON für Chat API vorbereiten
         ObjectNode systemMessage = objectMapper.createObjectNode();
         systemMessage.put("role", "system");
         systemMessage.put("content", systemPrompt);
@@ -79,7 +69,6 @@ public class OpenAiClient {
         payload.put("model", model);
         payload.set("messages", messages);
 
-        // 3) API-Call (synchron) an OpenAI
         JsonNode response = webClient.post()
                 .uri("/chat/completions")
                 .bodyValue(payload)
@@ -87,7 +76,6 @@ public class OpenAiClient {
                 .bodyToMono(JsonNode.class)
                 .block();
 
-        // 4) Antwort parsen: JSON → List<OfferData>
         String content = response.get("choices")
                 .get(0)
                 .get("message")
