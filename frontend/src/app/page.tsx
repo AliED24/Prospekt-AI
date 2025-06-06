@@ -59,7 +59,7 @@ export default function Home() {
             <div className="mb-8">
                 <h1 className="text-4xl font-bold text-center mb-8">Willkommen bei Prospekt-AI</h1>
                 <p className="text-lg text-center mb-4">Ein KI-gestützter Assistent zur automatisierten Extraktion von Angebotsdaten aus PDF-Prospekten.</p>
-                <p className="text-center mb-6">Bitte laden sie Prospekt im PDF-Format hoch.</p>
+                <p className="text-center mb-6">Bitte laden sie ein Angebotsprospekt im PDF-Format hoch.</p>
                 <div className="flex justify-center">
                     <input
                         type="file"
