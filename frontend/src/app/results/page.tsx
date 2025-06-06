@@ -2,17 +2,12 @@
 
 import { useState, useEffect } from "react";
 import axios from "axios";
+import {OfferData} from "@/components/offerDataTableStructure/types/OfferData";
+import {columns} from "@/components/offerDataTableStructure/columns";
+import {DataTable} from "@/components/ui/data-table";
 
 
-interface OfferData {
-    id: number;
-    productName: string;
-    brand: string;
-    quantity?: string;
-    price: string;
-    originalPrice: string;
-    offerDate: string;
-}
+
 
 export default function Page() {
     const [offers, setOffers] = useState<OfferData[]>([]);
@@ -40,7 +35,9 @@ export default function Page() {
     return (
         <div className="p-8">
             <h1 className="text-3xl font-bold mb-6">Angebotsübersicht</h1>
-
+            <div>
+                <DataTable columns={columns} data={offers} />
+            </div>
         </div>
     );
 }
