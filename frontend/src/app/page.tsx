@@ -4,21 +4,6 @@ import { Button } from "@/components/ui/button";
 import { useState, useRef, ChangeEvent } from "react";
 import axios from "axios";
 
-/*interface OfferData {
-    id: bigint;
-    productName?: string;
-    brand?: string;
-    quantity?: string;
-    price?: string;
-    originalPrice: string;
-    offerDate: string;
-}*/
-
-/*
-interface Angebotsliste {
-    offer_data: OfferData[];
-} */
-//const [fileData, setFileData] = useState<Angebotsliste>({ offer_data: [] });
 
 export default function Home() {
     const [isUploading, setIsUploading] = useState(false);
