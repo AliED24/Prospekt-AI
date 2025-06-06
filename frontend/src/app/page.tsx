@@ -80,7 +80,7 @@ export default function Home() {
                                     d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
                                 ></path>
                             </svg>
-                            <span className="mt-2 text-blue-700">Bitte warten...</span>
+                            <span className="mt-2 text-blue-700">Der Ladevorgang kann einige Minuten dauern, bitte warten...</span>
                         </div>
                     )}
 
