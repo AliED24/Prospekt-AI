@@ -53,7 +53,7 @@ export default function Home() {
                         accept=".pdf"
                         className="hidden"
                     />
-                    <Button  onClick={handleUploadClick} disabled={isUploading}>
+                    <Button onClick={handleUploadClick} disabled={isUploading}>
                         <Upload className="mr-1" />
                         <span>{isUploading ? 'Lädt...' : 'Hochladen'}</span>
                     </Button>

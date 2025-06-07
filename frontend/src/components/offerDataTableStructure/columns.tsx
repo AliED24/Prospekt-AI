@@ -29,7 +29,16 @@ export const columns: ColumnDef<OfferData>[] = [
         header: "Normalpreis",
     },
     {
-        accessorKey: "offerDate",
-        header: "Angebotsdatum",
+        accessorKey: "offerDateStart",
+        header: "Angebotsdatum-Start",
     },
+    {
+        accessorKey: "offerDateEnd",
+        header: "Angebotsdatum-Ende",
+    },
+    {
+        accessorKey: "storeName",
+        header: "Einzelhändler",
+    },
+
 ]

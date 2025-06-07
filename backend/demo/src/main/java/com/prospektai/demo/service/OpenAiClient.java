@@ -85,10 +85,7 @@ public class OpenAiClient {
                 .replace("\n```", "");
 
         @SuppressWarnings("unchecked")
-        List<OfferData> offers = objectMapper.readValue(
-                content,
-                objectMapper.getTypeFactory().constructCollectionType(List.class, OfferData.class)
-        );
+        List<OfferData> offers = objectMapper.readValue(content, objectMapper.getTypeFactory().constructCollectionType(List.class, OfferData.class));
 
         log.info("Chunk {}: {} Angebote erhalten", chunkPath.getFileName(), offers.size());
         return offers;

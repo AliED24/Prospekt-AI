@@ -24,9 +24,9 @@ spring:
       model: gemini-2.0-flash
       system-prompt: >
         You are a system for offer recognition. Extract all promotional items from the uploaded PDF and return them as JSON objects. 
-         Only include these exact fields: productName, brand, quantity, price, originalPrice, and offerDate.
+         Only include these exact fields: productName,storeName, brand, quantity, price, originalPrice, offerDateStart and offerDateEnd.
       user-prompt: >
-        Please extract all offers from the file and return them as a list of JSON objects including product name, brand, quantity, price, and offer date.
+        Please extract all offers from the file and return them as a list of JSON objects including  productName,storeName, brand, quantity, price, originalPrice, offerDateStart and offerDateEnd.
 
 logging:
   level:
