@@ -51,7 +51,7 @@ export function DataTable<TData, TValue>({
         },
         initialState: {
             pagination: {
-                pageSize: 10,
+                pageSize: 15,
             },
         },
     })
@@ -69,8 +69,8 @@ export function DataTable<TData, TValue>({
                 />
             </div>
             <div className="rounded-md border">
-                <div className="h-[600px] ">
-                    <Table>
+                <div className="">
+                    <Table className="h-full">
                         <TableHeader className="sticky bg-gray-100">
                             {table.getHeaderGroups().map((headerGroup) => (
                                 <TableRow key={headerGroup.id}>
@@ -90,18 +90,18 @@ export function DataTable<TData, TValue>({
                                 </TableRow>
                             ))}
                         </TableHeader>
-                        <TableBody>
+                        <TableBody className="divide-y divide-gray-200">
                             {table.getRowModel().rows?.length ? (
                                 table.getRowModel().rows.map((row) => (
                                     <TableRow key={row.id}>
                                         {row.getVisibleCells().map((cell) => (
                                             <TableCell
                                                 key={cell.id}
-                                                className="w-[160px] max-w-[160px]" // Feste Breite für Zellen
+                                                className="w-[160px] max-w-[160px] "
                                             >
                                                 <div
                                                     className="truncate"
-                                                    title={cell.getValue() as string} // Tooltip mit vollem Text
+                                                    title={cell.getValue() as string}
                                                 >
                                                     {flexRender(
                                                         cell.column.columnDef.cell,
