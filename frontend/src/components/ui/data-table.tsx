@@ -14,7 +14,6 @@ import {
 } from "@tanstack/react-table"
 
 import { Skeleton } from "@/components/ui/skeleton"
-
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -57,7 +56,7 @@ export function DataTable<TData, TValue>({columns, data, isLoading}: DataTablePr
     })
 
     return (
-        <div className="w-full">
+        <div className="w-full max-w-8xl"> {/* Maximale Breite begrenzt */}
             <div className="flex items-center py-4">
                 <Input
                     placeholder="Nach Produktname filtern..."
@@ -69,15 +68,15 @@ export function DataTable<TData, TValue>({columns, data, isLoading}: DataTablePr
                 />
             </div>
             <div className="rounded-md border">
-                <div>
-                    <Table className="h-full">
-                        <TableHeader className="sticky bg-gray-100">
+                <div className="overflow-x-auto"> {/* Horizontales Scrolling */}
+                    <Table>
+                        <TableHeader className="sticky top-0 bg-gray-100">
                             {table.getHeaderGroups().map((headerGroup) => (
                                 <TableRow key={headerGroup.id}>
                                     {headerGroup.headers.map((header) => (
                                         <TableHead
                                             key={header.id}
-                                            className="w-[150px] max-w-[150px]" // Feste Breite für Header
+                                            className="w-[120px] max-w-[120px] px-2"
                                         >
                                             {header.isPlaceholder
                                                 ? null
@@ -92,27 +91,25 @@ export function DataTable<TData, TValue>({columns, data, isLoading}: DataTablePr
                         </TableHeader>
                         <TableBody className="divide-y divide-gray-200">
                             {isLoading ? (
-                                // Skeleton Loading
                                 Array.from({ length: 10 }).map((_, index) => (
                                     <TableRow key={index}>
                                         {columns.map((_, cellIndex) => (
-                                            <TableCell key={cellIndex} className="w-[160px] max-w-[160px]">
-                                                <Skeleton className="h-4 w-[140px]" />
+                                            <TableCell key={cellIndex} className="w-[120px] max-w-[120px] px-2">
+                                                <Skeleton className="h-4 w-[100px]" />
                                             </TableCell>
                                         ))}
                                     </TableRow>
                                 ))
                             ) : table.getRowModel().rows?.length ? (
-                                // Normale Daten-Anzeige
                                 table.getRowModel().rows.map((row) => (
                                     <TableRow key={row.id}>
                                         {row.getVisibleCells().map((cell) => (
                                             <TableCell
                                                 key={cell.id}
-                                                className="w-[160px] max-w-[160px]"
+                                                className="w-[160px] max-w-[160px] px-2"
                                             >
                                                 <div
-                                                    className="truncate"
+                                                    className="truncate text-sm"
                                                     title={cell.getValue() as string}
                                                 >
                                                     {flexRender(
@@ -125,7 +122,6 @@ export function DataTable<TData, TValue>({columns, data, isLoading}: DataTablePr
                                     </TableRow>
                                 ))
                             ) : (
-                                // Keine Ergebnisse
                                 <TableRow>
                                     <TableCell
                                         colSpan={columns.length}
@@ -154,17 +150,31 @@ export function DataTable<TData, TValue>({columns, data, isLoading}: DataTablePr
                         Zurück
                     </Button>
                     <div className="flex items-center justify-center text-sm font-medium">
-                        {Array.from({ length: table.getPageCount() }, (_, i) => (
-                            <Button
-                                key={i}
-                                variant={table.getState().pagination.pageIndex === i ? "default" : "outline"}
-                                size="sm"
-                                onClick={() => table.setPageIndex(i)}
-                                className="mx-1 w-8"
-                            >
-                                {i + 1}
-                            </Button>
-                        ))}
+                        {Array.from({ length: table.getPageCount() }, (_, i) => {
+                            const currentPage = table.getState().pagination.pageIndex;
+                            const showPage = i < 2 ||
+                                i === table.getPageCount() - 1 ||
+                                (i >= currentPage - 1 && i <= currentPage + 1);
+
+                            if (!showPage) {
+                                if (i === 2 || i === table.getPageCount() - 2) {
+                                    return <span key={i} className="mx-1">...</span>;
+                                }
+                                return null;
+                            }
+
+                            return (
+                                <Button
+                                    key={i}
+                                    variant={currentPage === i ? "default" : "outline"}
+                                    size="sm"
+                                    onClick={() => table.setPageIndex(i)}
+                                    className="mx-0.5 w-7 h-7 p-0"
+                                >
+                                    {i + 1}
+                                </Button>
+                            );
+                        })}
                     </div>
                     <Button
                         variant="outline"

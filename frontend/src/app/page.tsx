@@ -3,10 +3,11 @@ import { Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useRef, ChangeEvent } from "react";
 import axios from "axios";
+import {useUpload} from "@/app/context/uploadContext";
 
 
 export default function Home() {
-    const [isUploading, setIsUploading] = useState(false);
+    const {isUploading, setIsUploading} = useUpload();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleUploadClick = () => {
@@ -40,6 +41,7 @@ export default function Home() {
         }
     };
 
+    console.log("isUploading",isUploading);
     return (
         <div className="flex flex-col items-center">
             <div className="mb-8">
@@ -84,7 +86,6 @@ export default function Home() {
                             <span className="mt-2 text-blue-700">Der Ladevorgang kann einige Minuten dauern, bitte warten...</span>
                         </div>
                     )}
-
                 </div>
             </div>
         </div>
