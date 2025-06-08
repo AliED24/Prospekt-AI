@@ -13,6 +13,8 @@ import {
     useReactTable,
 } from "@tanstack/react-table"
 
+import { Skeleton } from "@/components/ui/skeleton"
+
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -27,12 +29,10 @@ import {
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[]
     data: TData[]
+    isLoading?: boolean
 }
 
-export function DataTable<TData, TValue>({
-                                             columns,
-                                             data,
-                                         }: DataTableProps<TData, TValue>) {
+export function DataTable<TData, TValue>({columns, data, isLoading}: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 
@@ -69,7 +69,7 @@ export function DataTable<TData, TValue>({
                 />
             </div>
             <div className="rounded-md border">
-                <div className="">
+                <div>
                     <Table className="h-full">
                         <TableHeader className="sticky bg-gray-100">
                             {table.getHeaderGroups().map((headerGroup) => (
@@ -91,13 +91,25 @@ export function DataTable<TData, TValue>({
                             ))}
                         </TableHeader>
                         <TableBody className="divide-y divide-gray-200">
-                            {table.getRowModel().rows?.length ? (
+                            {isLoading ? (
+                                // Skeleton Loading
+                                Array.from({ length: 10 }).map((_, index) => (
+                                    <TableRow key={index}>
+                                        {columns.map((_, cellIndex) => (
+                                            <TableCell key={cellIndex} className="w-[160px] max-w-[160px]">
+                                                <Skeleton className="h-4 w-[140px]" />
+                                            </TableCell>
+                                        ))}
+                                    </TableRow>
+                                ))
+                            ) : table.getRowModel().rows?.length ? (
+                                // Normale Daten-Anzeige
                                 table.getRowModel().rows.map((row) => (
                                     <TableRow key={row.id}>
                                         {row.getVisibleCells().map((cell) => (
                                             <TableCell
                                                 key={cell.id}
-                                                className="w-[160px] max-w-[160px] "
+                                                className="w-[160px] max-w-[160px]"
                                             >
                                                 <div
                                                     className="truncate"
@@ -113,6 +125,7 @@ export function DataTable<TData, TValue>({
                                     </TableRow>
                                 ))
                             ) : (
+                                // Keine Ergebnisse
                                 <TableRow>
                                     <TableCell
                                         colSpan={columns.length}
