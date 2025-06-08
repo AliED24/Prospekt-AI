@@ -32,10 +32,10 @@ export default function Page() {
     }, []);
 
     return (
-        <div className="p-8">
-            <h1 className="text-3xl font-bold mb-6 text-center">Angebotsübersicht</h1>
-            <div>
-                <DataTable columns={columns} data={offers} />
+        <div>
+            <h1 className="text-3xl font-bold mb-">Angebotsübersicht</h1>
+            <div className="">
+                <DataTable columns={columns} data={offers}/>
             </div>
         </div>
     );

@@ -18,6 +18,7 @@ export default function Home() {
         if (file && file.type === 'application/pdf') {
             try {
                 setIsUploading(true);
+                console.log("ist am uploaden",isUploading);
                 const formData = new FormData();
                 formData.append('file', file);
 
