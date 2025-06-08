@@ -1,4 +1,7 @@
+'use client'
 import { Home, Inbox } from "lucide-react"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
 
 import {
     Sidebar,
@@ -11,7 +14,6 @@ import {
     SidebarMenuItem,
 } from "@/components/ui/sidebar"
 
-// Menu items.
 const items = [
     {
         title: "Home",
@@ -23,24 +25,28 @@ const items = [
         url: "/results",
         icon: Inbox,
     },
-
 ]
 
 export function AppSidebar() {
+    const pathname = usePathname()
+
     return (
         <Sidebar>
             <SidebarContent>
                 <SidebarGroup>
-                    <SidebarGroupLabel className= "text-2xl font-bold">Prospekt-AI</SidebarGroupLabel>
+                    <SidebarGroupLabel className="text-2xl font-bold">Prospekt-AI</SidebarGroupLabel>
                     <SidebarGroupContent>
-                        <SidebarMenu className=" mt-4">
+                        <SidebarMenu className="mt-4">
                             {items.map((item) => (
                                 <SidebarMenuItem key={item.title}>
-                                    <SidebarMenuButton asChild>
-                                        <a href={item.url}>
+                                    <SidebarMenuButton
+                                        asChild
+                                        isActive={pathname === item.url}
+                                    >
+                                        <Link href={item.url}>
                                             <item.icon />
                                             <span>{item.title}</span>
-                                        </a>
+                                        </Link>
                                     </SidebarMenuButton>
                                 </SidebarMenuItem>
                             ))}
