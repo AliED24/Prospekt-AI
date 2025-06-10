@@ -7,11 +7,13 @@ import org.springframework.web.multipart.MultipartFile;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import org.slf4j.Logger;
 
 @Service
 @RequiredArgsConstructor
 public class PdfProcessingService {
 
+    private static final Logger logger = org.slf4j.LoggerFactory.getLogger(PdfProcessingService.class);
     private final PdfSplitter pdfSplitter;
     private final OpenAiClient openAiClient;
     private final OfferSaver offerSaver;
@@ -30,6 +32,8 @@ public class PdfProcessingService {
                 offerSaver.saveAll(offers);
                 Files.deleteIfExists(chunkPath);
             }
+        } catch (Exception e) {
+            logger.error("Fehler bei der Verarbeitung der PDF-Datei: {}", e.getMessage(), e);
         } finally {
             Files.deleteIfExists(tempFile);
         }

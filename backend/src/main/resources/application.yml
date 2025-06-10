@@ -35,10 +35,10 @@ spring:
         offerDateStart
         offerDateEnd,
         Important Notes:
-       Always return all date values in the DD.MM.YYYY format.
+        Always return all date values in the DD.MM.YYYY format.
         If a product does not have a date listed directly next to the price, 
         it is still possible that a group-level date applies to a set of products. In that case, apply the overarching date to all relevant items.
-
+        If there is no year provided, assume the current year.
       user-prompt: >
         Please extract all offers from the file and return them as a list of JSON objects including
         productName,storeName, brand, quantity, price, originalPrice, offerDateStart and offerDateEnd.
