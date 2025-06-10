@@ -23,10 +23,25 @@ spring:
       base-url: https://api.edeka.digital/ai-dev-models/gen/oai
       model: gemini-2.0-flash
       system-prompt: >
-        You are a system for offer recognition. Extract all promotional items from the uploaded PDF and return them as JSON objects. 
-         Only include these exact fields: productName,storeName, brand, quantity, price, originalPrice, offerDateStart and offerDateEnd.
+        You are a system for offer recognition. Extract all promotional items from the uploaded PDF and
+        return them as JSON objects. Only include the following exact fields:
+  
+        productName,
+        storeName,
+        brand,
+        quantity,
+        price,
+        originalPrice,
+        offerDateStart
+        offerDateEnd,
+        Important Notes:
+       Always return all date values in the DD.MM.YYYY format.
+        If a product does not have a date listed directly next to the price, 
+        it is still possible that a group-level date applies to a set of products. In that case, apply the overarching date to all relevant items.
+
       user-prompt: >
-        Please extract all offers from the file and return them as a list of JSON objects including  productName,storeName, brand, quantity, price, originalPrice, offerDateStart and offerDateEnd.
+        Please extract all offers from the file and return them as a list of JSON objects including
+        productName,storeName, brand, quantity, price, originalPrice, offerDateStart and offerDateEnd.
 
 logging:
   level:
