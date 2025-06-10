@@ -65,10 +65,52 @@ public class OpenAiClient {
         messages.add(systemMessage);
         messages.add(userMessage);
 
+        ObjectNode responseFormat = objectMapper.createObjectNode();
+        responseFormat.put("type", "json_schema");
+        ObjectNode jsonSchemaNode = responseFormat.putObject("json_schema");
+        jsonSchemaNode.put("name", "extract_offers_response");
+        jsonSchemaNode.put("strict", true);
+        ObjectNode schemaNode = jsonSchemaNode.putObject("schema");
+        schemaNode.put("type", "object");
+        ObjectNode props = schemaNode.putObject("properties");
+        ObjectNode offersProp = props.putObject("offers");
+        offersProp.put("type", "array");
+        ObjectNode itemsNode = offersProp.putObject("items");
+        itemsNode.put("type", "object");
+        ObjectNode itemProps = itemsNode.putObject("properties");
+
+
+        itemProps.putObject("storeName").put("type", "string");
+        itemProps.putObject("productName").put("type", "string");
+        // brand und quantity optional (kann null sein)
+        ObjectNode brandProp = itemProps.putObject("brand");
+        brandProp.put("type", "string"); // JSON-Schema erlaubt null, aber Typ hier string; null wird als fehlendes Feld behandelt
+        ObjectNode quantityProp = itemProps.putObject("quantity");
+        quantityProp.put("type", "string");
+        itemProps.putObject("price").put("type", "number");
+        ObjectNode origProp = itemProps.putObject("originalPrice");
+        origProp.put("type", "number");
+        itemProps.putObject("offerDateStart").put("type", "string").put("format", "date");
+        itemProps.putObject("offerDateEnd").put("type", "string").put("format", "date");
+
+        ArrayNode itemRequired = itemsNode.putArray("required");
+        itemRequired.add("storeName");
+        itemRequired.add("productName");
+        itemRequired.add("price");
+        itemRequired.add("offerDateStart");
+        itemRequired.add("offerDateEnd");
+        // top-level required:
+        ArrayNode topRequired = schemaNode.putArray("required");
+        topRequired.add("offers");
+        schemaNode.put("additionalProperties", false);
+
         ObjectNode payload = objectMapper.createObjectNode();
         payload.put("model", model);
         payload.set("messages", messages);
+        payload.set("response_format", responseFormat);
 
+
+        // 5. Request senden
         JsonNode response = webClient.post()
                 .uri("/chat/completions")
                 .bodyValue(payload)
@@ -76,18 +118,33 @@ public class OpenAiClient {
                 .bodyToMono(JsonNode.class)
                 .block();
 
-        String content = response.get("choices")
-                .get(0)
-                .get("message")
-                .get("content")
-                .asText()
-                .replace("```json\n", "")
-                .replace("\n```", "");
+        JsonNode choice = response.get("choices").get(0);
+        JsonNode message = choice.get("message");
+        if (message.has("content")) {
+            String contentText = message.get("content").asText().trim();
 
-        @SuppressWarnings("unchecked")
-        List<OfferData> offers = objectMapper.readValue(content, objectMapper.getTypeFactory().constructCollectionType(List.class, OfferData.class));
-
-        log.info("Chunk {}: {} Angebote erhalten", chunkPath.getFileName(), offers.size());
-        return offers;
+            if (contentText.startsWith("```")) {
+                contentText = contentText.replaceAll("^```json\\s*", "").replaceAll("\\s*```$", "");
+            }
+            JsonNode rootNode = objectMapper.readTree(contentText);
+            JsonNode offersArrayNode = rootNode.get("offers");
+            List<OfferData> offers = objectMapper.readerFor(
+                    objectMapper.getTypeFactory().constructCollectionType(List.class, OfferData.class)
+            ).readValue(offersArrayNode);
+            log.info("Chunk {}: {} Angebote erhalten (structured)", chunkPath.getFileName(), offers.size());
+            return offers;
+        } else {
+            log.warn("Keine strukturierte Antwort im content, nutze Fallback-Pfad");
+            String contentText = message.get("content").asText();
+            contentText = contentText.replaceAll("^```json\\s*", "").replaceAll("\\s*```$", "");
+            @SuppressWarnings("unchecked")
+            List<OfferData> offers = objectMapper.readValue(
+                    contentText,
+                    objectMapper.getTypeFactory().constructCollectionType(List.class, OfferData.class)
+            );
+            log.info("Chunk {}: {} Angebote erhalten (fallback)", chunkPath.getFileName(), offers.size());
+            return offers;
+        }
     }
+
 }

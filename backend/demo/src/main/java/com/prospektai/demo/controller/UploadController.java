@@ -24,7 +24,7 @@ public class UploadController {
             pdfProcessingService.processPdf(file, pagesPerChunk);
             return ResponseEntity.ok("Datei erfolgreich verarbeitet und Angebote gespeichert.");
         } catch (Exception e) {
-            return ResponseEntity.status(500).body("Fehler bei der Verarbeitung: " + e.getMessage());
+            return ResponseEntity.internalServerError().body("Fehler bei der Verarbeitung: " + e.getMessage());
         }
     }
     @GetMapping("/offers")
