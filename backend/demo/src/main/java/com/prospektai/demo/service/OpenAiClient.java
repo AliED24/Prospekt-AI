@@ -84,14 +84,14 @@ public class OpenAiClient {
         itemProps.putObject("productName").put("type", "string");
         // brand und quantity optional (kann null sein)
         ObjectNode brandProp = itemProps.putObject("brand");
-        brandProp.put("type", "string"); // JSON-Schema erlaubt null, aber Typ hier string; null wird als fehlendes Feld behandelt
+        brandProp.put("type", "string");
         ObjectNode quantityProp = itemProps.putObject("quantity");
         quantityProp.put("type", "string");
         itemProps.putObject("price").put("type", "number");
         ObjectNode origProp = itemProps.putObject("originalPrice");
         origProp.put("type", "number");
-        itemProps.putObject("offerDateStart").put("type", "string").put("format", "date");
-        itemProps.putObject("offerDateEnd").put("type", "string").put("format", "date");
+        itemProps.putObject("offerDateStart").put("type", "string");
+        itemProps.putObject("offerDateEnd").put("type", "string");
 
         ArrayNode itemRequired = itemsNode.putArray("required");
         itemRequired.add("storeName");

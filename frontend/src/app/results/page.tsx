@@ -19,6 +19,7 @@ export default function Page() {
                 setLoading(true);
                 const response = await axios.get<OfferData[]>("http://localhost:8080/api/offers");
                 setOffers(response.data);
+                console.log("Der Response:",response.data[0])
             } catch (err: any) {
                 console.error("Fehler beim Laden der Angebote:", err);
             } finally {
@@ -33,7 +34,7 @@ export default function Page() {
     return (
         <div>
             <h1 className="text-3xl font-bold mb-">Angebotsübersicht</h1>
-            <div className="">
+            <div>
                 <DataTable columns={columns} data={offers} isLoading={isLoading}/>
             </div>
         </div>

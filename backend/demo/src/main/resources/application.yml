@@ -17,15 +17,15 @@ spring:
       max-file-size: 200MB
       max-request-size: 200MB
 
+
+
   ai:
     openai:
-      api-key: sk-3LGN0Yu3GsMNhofADG9H2A
+      api-key: ${OPENAI_API_KEY}
       base-url: https://api.edeka.digital/ai-dev-models/gen/oai
       model: gemini-2.0-flash
       system-prompt: >
-        You are a system for offer recognition. Extract all promotional items from the uploaded PDF and
-        return them as JSON objects. Only include the following exact fields:
-  
+        You are a system for offer recognition. Extract all promotional items from the uploaded PDF and Only include the following exact fields:
         productName,
         storeName,
         brand,
@@ -35,10 +35,12 @@ spring:
         offerDateStart
         offerDateEnd,
         Important Notes:
-        Always return all date values in the DD.MM.YYYY format.
+        Always return all date values in the DD.MM.YYYY format like 31.01.2000
         If a product does not have a date listed directly next to the price, 
         it is still possible that a group-level date applies to a set of products. In that case, apply the overarching date to all relevant items.
-        If there is no year provided, assume the current year(2025).
+        If there is no YEAR provided, assume the current year(2025).
+        if there is no offerDateEnd directy provided, just take the span from the beginning of the PDF where the end date is written.
+        the storeName is always the same from the PDF like Aldi,Rewe,Penny etc.
       user-prompt: >
         Please extract all offers from the file and return them as a list of JSON objects including
         productName,storeName, brand, quantity, price, originalPrice, offerDateStart and offerDateEnd.
