@@ -1,6 +1,9 @@
 spring:
-  application:
-    name: demo
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    date-format: dd.MM.yyyy
+    time-zone: Europe/Berlin
 
   datasource:
     url: jdbc:postgresql://localhost:5432/meinedb
@@ -17,8 +20,6 @@ spring:
       max-file-size: 200MB
       max-request-size: 200MB
 
-
-
   ai:
     openai:
       api-key: ${OPENAI_API_KEY}
@@ -32,7 +33,7 @@ spring:
         quantity,
         price,
         originalPrice,
-        offerDateStart
+        offerDateStart,
         offerDateEnd,
         Important Notes:
         Always return all date values in the DD.MM.YYYY format like 31.01.2000
@@ -43,7 +44,7 @@ spring:
         the storeName is always the same from the PDF like Aldi,Rewe,Penny etc.
       user-prompt: >
         Please extract all offers from the file and return them as a list of JSON objects including
-        productName,storeName, brand, quantity, price, originalPrice, offerDateStart and offerDateEnd.
+        productName, storeName, brand, quantity, price, originalPrice, offerDateStart and offerDateEnd.
 
 logging:
   level:
@@ -54,5 +55,3 @@ server:
   tomcat:
     max-swallow-size: 209715200
     max-http-form-post-size: 209715200
-
-

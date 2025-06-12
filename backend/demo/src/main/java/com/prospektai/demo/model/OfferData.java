@@ -1,6 +1,9 @@
 package com.prospektai.demo.model;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence .*;
 import lombok .*;
+
+import java.time.LocalDate;
 
 @Entity
 @Data
@@ -18,8 +21,12 @@ public class OfferData {
     private String quantity;
     private String price;
     private String originalPrice;
-    private String offerDateStart;
-    private String offerDateEnd;
+
+    @Column(columnDefinition = "DATE")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd.MM.yyyy")
+    private LocalDate offerDateStart;
+
+    @Column(columnDefinition = "DATE")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd.MM.yyyy")
+    private LocalDate offerDateEnd;
 }
-
-
