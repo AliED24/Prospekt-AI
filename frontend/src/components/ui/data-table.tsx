@@ -68,9 +68,9 @@ export function DataTable<TData, TValue>({columns, data, isLoading}: DataTablePr
                 />
             </div>
             <div className="rounded-md border">
-                <div className="overflow-x-auto"> {/* Horizontales Scrolling */}
+                <div className="overflow-x-auto">
                     <Table>
-                        <TableHeader className="sticky top-0 bg-gray-100">
+                        <TableHeader className="sticky top-0 ">
                             {table.getHeaderGroups().map((headerGroup) => (
                                 <TableRow key={headerGroup.id}>
                                     {headerGroup.headers.map((header) => (

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useState, useRef, ChangeEvent } from "react";
 import axios from "axios";
 import {useUpload} from "@/app/context/uploadContext";
+import {ThemeToggle} from "@/components/theme-toggle";
 
 
 export default function Home() {
@@ -43,7 +44,7 @@ export default function Home() {
 
     console.log("isUploading",isUploading);
     return (
-        <div className="flex flex-col items-center">
+        <div className=" lex flex-col items-center ">
             <div className="mb-8">
                 <h1 className="text-4xl font-bold text-center mb-8">Willkommen bei Prospekt-AI</h1>
                 <p className="text-lg text-center mb-4">Ein KI-gestützter Assistent zur automatisierten Extraktion von Angebotsdaten aus PDF-Prospekten.</p>
