@@ -44,9 +44,6 @@ export function AppSidebar() {
                                 </SidebarMenuItem>
                             ))}
                         </SidebarMenu>
-                        <div className=" flex justify-center mt-4">
-                            <ThemeToggle />
-                        </div>
                     </SidebarGroupContent>
                 </SidebarGroup>
             </SidebarContent>

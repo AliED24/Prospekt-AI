@@ -5,6 +5,7 @@ import { AppSidebar } from "@/components/ui/app-sidebar"
 import "./globals.css";
 import {UploadProvider} from "@/app/context/uploadContext";
 import {ThemeProvider} from "next-themes";
+import {ThemeToggle} from "@/components/theme-toggle";
 
 const inter = Inter({
     subsets: ["latin"],
@@ -19,6 +20,9 @@ export default function RootLayout({children,}: Readonly<{ children: React.React
         >
         <ThemeProvider attribute="class" enableSystem={true} defaultTheme="system">
             <SidebarProvider>
+                <div className="fixed top-4 right-4 z-50">
+                    <ThemeToggle  />
+                </div>
                 <div className="flex min-h-screen min-w-screen">
                     <AppSidebar/>
                     <main className="flex-1 p-4 flex items-center justify-center ">
