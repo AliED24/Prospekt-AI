@@ -24,7 +24,7 @@ spring:
     openai:
       api-key: ${OPENAI_API_KEY}
       base-url: https://api.edeka.digital/ai-dev-models/gen/oai
-      model: gemini-2.0-flash
+      model: gpt-4o
       system-prompt: >
         You are a system for offer recognition. Extract all promotional items from the uploaded PDF and Only include the following exact fields:
         productName,
