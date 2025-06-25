@@ -55,3 +55,5 @@ server:
   tomcat:
     max-swallow-size: 209715200
     max-http-form-post-size: 209715200
+  error:
+    include-stacktrace: always

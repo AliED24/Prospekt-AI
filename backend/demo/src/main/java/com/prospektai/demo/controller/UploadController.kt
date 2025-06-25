@@ -1,35 +1,41 @@
-package com.prospektai.demo.controller;
+package com.prospektai.demo.controller
 
-import com.prospektai.demo.model.OfferData;
-import com.prospektai.demo.repository.OfferDataRepository;
-import com.prospektai.demo.service.PdfProcessingService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.util.List;
+import com.prospektai.demo.model.OfferData
+import com.prospektai.demo.repository.OfferDataRepository
+import com.prospektai.demo.service.PdfProcessingService
+import org.slf4j.LoggerFactory
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
 
 @RestController
 @RequestMapping("/api")
-@RequiredArgsConstructor
-public class UploadController {
-
-    private final PdfProcessingService pdfProcessingService;
-    private final OfferDataRepository offerDataRepository;
+class UploadController(
+    private val pdfProcessingService: PdfProcessingService,
+    private val offerDataRepository: OfferDataRepository
+) {
+    private val log = LoggerFactory.getLogger(javaClass)
 
     @PostMapping("/upload")
-    public ResponseEntity<String> uploadFile(@RequestPart("file") MultipartFile file, @RequestParam(value = "pagesPerChunk", defaultValue = "3") int pagesPerChunk) {
-        try {
-            pdfProcessingService.processPdf(file, pagesPerChunk);
-            return ResponseEntity.ok("Datei erfolgreich verarbeitet und Angebote gespeichert.");
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Fehler bei der Verarbeitung: " + e.getMessage());
+    fun uploadFile(
+        @RequestParam("file") file: MultipartFile,
+        @RequestParam(value = "pagesPerChunk", defaultValue = "2") pagesPerChunk: Int
+    ): ResponseEntity<String> {
+        log.debug("Upload-Endpoint aufgerufen mit Datei=${file.originalFilename}")
+        return try {
+            pdfProcessingService.processPdf(file, pagesPerChunk)
+            log.debug("processPdf erfolgreich durchgelaufen")
+            ResponseEntity.ok("Datei erfolgreich verarbeitet und Angebote gespeichert.")
+        } catch (e: Exception) {
+            log.error("Fehler bei der Verarbeitung:", e)
+            ResponseEntity.internalServerError()
+                .body("Fehler bei der Verarbeitung: ${e.message}")
         }
     }
+
     @GetMapping("/offers")
-    public ResponseEntity<List<OfferData>> getAllOffers() {
-        List<OfferData> allOffers = offerDataRepository.findAll();
-        return ResponseEntity.ok(allOffers);
+    fun getAllOffers(): ResponseEntity<MutableList<OfferData?>> {
+        val allOffers = offerDataRepository.findAll()
+        return ResponseEntity.ok(allOffers)
     }
 }

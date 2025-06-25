@@ -1,32 +1,26 @@
-package com.prospektai.demo.model;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import jakarta.persistence .*;
-import lombok .*;
+package com.prospektai.demo.model
 
-import java.time.LocalDate;
+import com.fasterxml.jackson.annotation.JsonFormat
+import jakarta.persistence.*
+import java.time.LocalDate
 
 @Entity
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+data class OfferData(
+        @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        var id: Long? = null,
+        var storeName: String? = null,
+        var productName: String? = null,
+        var brand: String? = null,
+        var quantity: String? = null,
+        var price: String? = null,
+        var originalPrice: String? = null,
 
-public class OfferData {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    private String storeName;
-    private String productName;
-    private String brand;
-    private String quantity;
-    private String price;
-    private String originalPrice;
+        @Column(columnDefinition = "DATE")
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd.MM.yyyy")
+        var offerDateStart: LocalDate? = null,
 
-    @Column(columnDefinition = "DATE")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd.MM.yyyy")
-    private LocalDate offerDateStart;
-
-    @Column(columnDefinition = "DATE")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd.MM.yyyy")
-    private LocalDate offerDateEnd;
-}
+        @Column(columnDefinition = "DATE")
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd.MM.yyyy")
+        var offerDateEnd: LocalDate? = null
+)

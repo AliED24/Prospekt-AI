@@ -1,169 +1,162 @@
-package com.prospektai.demo.service;
+package com.prospektai.demo.service
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.prospektai.demo.model.OfferData;
-import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatusCode;
-import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Base64;
-import java.util.List;
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.node.ArrayNode
+import com.fasterxml.jackson.databind.node.ObjectNode
+import com.prospektai.demo.model.OfferData
+import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.http.HttpStatusCode
+import org.springframework.stereotype.Component
+import org.springframework.web.reactive.function.client.WebClient
+import reactor.core.publisher.Mono
+import java.nio.file.Files
+import java.nio.file.Path
+import java.util.Base64
 
 @Component
-@RequiredArgsConstructor
-public class OpenAiClient {
+class OpenAiClient(
+    private val webClient: WebClient,
+    private val objectMapper: ObjectMapper
+) {
+    private val log = LoggerFactory.getLogger(OpenAiClient::class.java)
 
-    private static final Logger log = LoggerFactory.getLogger(OpenAiClient.class);
+    @Value("\${spring.ai.openai.system-prompt}")
+    lateinit var systemPrompt: String
 
-    private final WebClient webClient;
-    private final ObjectMapper objectMapper;
+    @Value("\${spring.ai.openai.user-prompt}")
+    lateinit var userPrompt: String
 
-    @Value("${spring.ai.openai.system-prompt}")
-    private String systemPrompt;
+    @Value("\${spring.ai.openai.model}")
+    lateinit var model: String
 
-    @Value("${spring.ai.openai.user-prompt}")
-    private String userPrompt;
-
-    @Value("${spring.ai.openai.model}")
-    private String model;
-
-    public List<OfferData> extractOffersImage(Path imagePath) throws Exception {
-        byte[] bytes = Files.readAllBytes(imagePath);
-        String base64 = Base64.getEncoder()
-                .encodeToString(bytes)
-                .replaceAll("\\s+", "");
-        // === Data-URL jetzt korrekt als JPEG ===
-        String dataUrl = "data:image/jpeg;base64," + base64;
-
-        // --- System-Nachricht ---
-        ObjectNode systemMessage = objectMapper.createObjectNode();
-        systemMessage.put("role", "system");
-        systemMessage.put("content", systemPrompt);
-
-        // --- Text-Teil ---
-        ObjectNode textPart = objectMapper.createObjectNode();
-        textPart.put("type", "text");
-        textPart.put("content", userPrompt);
-
-        // --- File-Teil mit JPEG ---
-        ObjectNode filePart = objectMapper.createObjectNode();
-        filePart.put("type", "image_url");
-        ObjectNode imageUrl = filePart.putObject("image_url");
-        imageUrl.put("format", "image/jpeg");
-        imageUrl.put("url", dataUrl);
-
-        // --- User-Message zusammenbauen ---
-        ArrayNode contentArray = objectMapper.createArrayNode()
-                .add(textPart)
-                .add(filePart);
-
-        ObjectNode userMessage = objectMapper.createObjectNode();
-        userMessage.put("role", "user");
-        userMessage.set("content", contentArray);
-
-        // --- Alle Messages in ein Array ---
-        ArrayNode messages = objectMapper.createArrayNode()
-                .add(systemMessage)
-                .add(userMessage);
-
-        // --- JSON-Schema für response_format ---
-        ObjectNode responseFormat = objectMapper.createObjectNode();
-        responseFormat.put("type", "json_schema");
-        ObjectNode jsonSchemaNode = responseFormat.putObject("json_schema");
-        jsonSchemaNode.put("name", "extract_offers_response");
-        jsonSchemaNode.put("strict", true);
-
-        ObjectNode schemaNode = jsonSchemaNode.putObject("schema");
-        schemaNode.put("type", "object");
-        ObjectNode props = schemaNode.putObject("properties");
-
-        // top-level "offers"
-        ObjectNode offersProp = props.putObject("offers");
-        offersProp.put("type", "array");
-
-        // items-Schema
-        ObjectNode itemsNode = offersProp.putObject("items");
-        itemsNode.put("type", "object");
-        ObjectNode itemProps = itemsNode.putObject("properties");
-
-        itemProps.putObject("storeName").put("type", "string");
-        itemProps.putObject("productName").put("type", "string");
-        itemProps.putObject("brand").put("type", "string");
-        itemProps.putObject("quantity").put("type", "string");
-        itemProps.putObject("price").put("type", "number");
-        itemProps.putObject("originalPrice").put("type", "number");
-        itemProps.putObject("offerDateStart").put("type", "string");
-        itemProps.putObject("offerDateEnd").put("type", "string");
-
-        // Required-Felder für jedes Offer-Objekt
-        ArrayNode itemRequired = itemsNode.putArray("required");
-        itemRequired.add("storeName");
-        itemRequired.add("productName");
-        itemRequired.add("brand");
-        itemRequired.add("quantity");
-        itemRequired.add("price");
-        itemRequired.add("originalPrice");
-        itemRequired.add("offerDateStart");
-        itemRequired.add("offerDateEnd");
-        itemsNode.put("additionalProperties", false);
-
-        // Required auf Top-Level und keine zusätzlichen Properties
-        ArrayNode topRequired = schemaNode.putArray("required");
-        topRequired.add("offers");
-        schemaNode.put("additionalProperties", false);
-
-        // --- Payload zusammenbauen ---
-        ObjectNode payload = objectMapper.createObjectNode();
-        payload.put("model", model);
-        payload.set("messages", messages);
-        payload.set("response_format", responseFormat);
-
-        // Optional Debug-Log, um den Payload vorab zu prüfen
-        log.debug("OpenAI Payload: {}", payload.toPrettyString());
-
-        // --- Request senden mit Fehler-Logging ---
-        JsonNode response = webClient.post()
-                .uri("/chat/completions")
-                .bodyValue(payload)
-                .retrieve()
-                .onStatus(
-                        HttpStatusCode::isError,
-                        clientResponse -> clientResponse.bodyToMono(String.class)
-                                .flatMap(errorBody -> {
-                                    log.error("OpenAI API Fehler – Status: {}, Body: {}",
-                                            clientResponse.statusCode(), errorBody);
-                                    return Mono.error(new RuntimeException(errorBody));
-                                })
-                )
-                .bodyToMono(JsonNode.class)
-                .block();
-
-        // --- Antwort auswerten ---
-        JsonNode choice = response.get("choices").get(0);
-        JsonNode message = choice.get("message");
-
-        String contentText = message.get("content").asText().trim();
-        if (contentText.startsWith("```")) {
-            contentText = contentText.replaceAll("^```json\\s*", "").replaceAll("\\s*```$", "");
+    @Throws(Exception::class)
+    fun extractOffers(imagePath: Path): List<OfferData> {
+        val bytes = Files.readAllBytes(imagePath)
+        val base64 = Base64.getEncoder()
+            .encodeToString(bytes)
+            .replace("\\s+".toRegex(), "")
+        val dataUrl = "data:image/jpeg;base64,$base64"
+        // System message
+        val systemMessage: ObjectNode = objectMapper.createObjectNode().apply {
+            put("role", "system")
+            put("content", systemPrompt)
+        }
+        // Text part
+        val textPart: ObjectNode = objectMapper.createObjectNode().apply {
+            put("type", "text")
+            put("content", userPrompt)
         }
 
-        JsonNode offersArrayNode = objectMapper.readTree(contentText).get("offers");
-        List<OfferData> offers = objectMapper.readerFor(
-                objectMapper.getTypeFactory()
-                        .constructCollectionType(List.class, OfferData.class)
-        ).readValue(offersArrayNode);
+        // File part with JPEG
+        val filePart: ObjectNode = objectMapper.createObjectNode().apply {
+            put("type", "image_url")
+            putObject("image_url").apply {
+                put("format", "image/jpeg")
+                put("url", dataUrl)
+            }
+        }
 
-        log.info("Chunk {}: {} Angebote erhalten", imagePath.getFileName(), offers.size());
-        return offers;
+        // User message
+        val contentArray: ArrayNode = objectMapper.createArrayNode().apply {
+            add(textPart)
+            add(filePart)
+        }
+        val userMessage: ObjectNode = objectMapper.createObjectNode().apply {
+            put("role", "user")
+            set<JsonNode>("content", contentArray)
+        }
+
+        // All messages
+        val messages: ArrayNode = objectMapper.createArrayNode().apply {
+            add(systemMessage)
+            add(userMessage)
+        }
+
+        // JSON schema for response_format
+        val responseFormat: ObjectNode = objectMapper.createObjectNode().apply {
+            put("type", "json_schema")
+            putObject("json_schema").apply {
+                put("name", "extract_offers_response")
+                put("strict", false)
+                putObject("schema").apply {
+                    put("type", "object")
+                    putObject("properties").apply {
+                        putObject("offers").apply {
+                            put("type", "array")
+                            putObject("items").apply {
+                                put("type", "object")
+                                putObject("properties").apply {
+                                    putObject("storeName").put("type", "string")
+                                    putObject("productName").put("type", "string")
+                                    putObject("brand").put("type", "string")
+                                    putObject("quantity").put("type", "string")
+                                    putObject("price").put("type", "number")
+                                    putObject("originalPrice").put("type", "number")
+                                    putObject("offerDateStart").put("type", "string")
+                                    putObject("offerDateEnd").put("type", "string")
+                                }
+                                putArray("required").apply {
+                                    add("storeName")
+                                    add("productName")
+                                    add("quantity")
+                                    add("price")
+                                    add("offerDateStart")
+                                    add("offerDateEnd")
+                                }
+                                put("additionalProperties", false)
+                            }
+                        }
+                    }
+                    putArray("required").add("offers")
+                    put("additionalProperties", false)
+                }
+            }
+        }
+
+        // Payload
+        val payload: ObjectNode = objectMapper.createObjectNode().apply {
+            put("model", model)
+            set<JsonNode>("messages", messages)
+            set<JsonNode>("response_format", responseFormat)
+        }
+
+        log.debug("OpenAI Payload: {}", payload.toPrettyString())
+
+        // Send request
+        val response: JsonNode? = webClient.post()
+            .uri("/chat/completions")
+            .bodyValue(payload)
+            .retrieve()
+            .onStatus(HttpStatusCode::isError) { clientResponse ->
+                clientResponse.bodyToMono(String::class.java)
+                    .flatMap { errorBody ->
+                        log.error("OpenAI API Fehler – Status: {}, Body: {}",
+                            clientResponse.statusCode(), errorBody)
+                        Mono.error(RuntimeException(errorBody))
+                    }
+            }
+            .bodyToMono(JsonNode::class.java)
+            .block()
+
+        // Process response
+        val contentText = response
+            ?.get("choices")
+            ?.get(0)
+            ?.get("message")
+            ?.get("content")
+            ?.asText()
+            ?.trim()
+            ?.removePrefix("```json")
+            ?.removeSuffix("```") ?: throw RuntimeException("Keine gültige Antwort erhalten")
+
+        val offersArrayNode: JsonNode = objectMapper.readTree(contentText).get("offers")
+        val offers: List<OfferData> = objectMapper.readerFor(
+            objectMapper.typeFactory.constructCollectionType(List::class.java, OfferData::class.java)
+        ).readValue(offersArrayNode)
+
+        log.info("Chunk {}: {} Angebote erhalten", imagePath.fileName, offers.size)
+        return offers
     }
 }

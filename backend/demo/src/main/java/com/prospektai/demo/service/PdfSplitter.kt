@@ -1,37 +1,32 @@
+package com.prospektai.demo.service
 
-package com.prospektai.demo.service;
-
-import org.apache.pdfbox.multipdf.Splitter;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.springframework.stereotype.Component;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
+import org.apache.pdfbox.multipdf.Splitter
+import org.apache.pdfbox.pdmodel.PDDocument
+import org.springframework.stereotype.Component
+import java.io.IOException
+import java.nio.file.Files
+import java.nio.file.Path
 
 @Component
-public class PdfSplitter {
+class PdfSplitter {
+    @Throws(IOException::class)
+    fun split(source: Path, pagesPerChunk: Int): List<Path> {
+        val document = PDDocument.load(source.toFile())
+        val splitter = Splitter()
+        splitter.setSplitAtPage(pagesPerChunk)
 
+        val parts = splitter.split(document)
+        val chunkPaths: MutableList<Path> = ArrayList()
 
-    public List<Path> split(Path source, int pagesPerChunk) throws IOException {
-        PDDocument document = PDDocument.load(source.toFile());
-        Splitter splitter = new Splitter();
-        splitter.setSplitAtPage(pagesPerChunk);
-
-        List<PDDocument> parts = splitter.split(document);
-        List<Path> chunkPaths = new ArrayList<>();
-
-        for (int i = 0; i < parts.size(); i++) {
-            PDDocument chunkDoc = parts.get(i);
-            Path tempFile = Files.createTempFile("pdf_chunk_" + i + "_", ".pdf");
-            chunkDoc.save(tempFile.toFile());
-            chunkDoc.close();
-            chunkPaths.add(tempFile);
+        for (i in parts.indices) {
+            val chunkDoc = parts[i]
+            val tempFile = Files.createTempFile("pdf_chunk_" + i + "_", ".pdf")
+            chunkDoc.save(tempFile.toFile())
+            chunkDoc.close()
+            chunkPaths.add(tempFile)
         }
 
-        document.close();
-        return chunkPaths;
+        document.close()
+        return chunkPaths
     }
 }

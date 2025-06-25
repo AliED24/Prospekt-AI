@@ -1,6 +1,6 @@
-package com.prospektai.demo.repository;
-import com.prospektai.demo.model.*;
-import org.springframework.data.jpa.repository.JpaRepository;
+package com.prospektai.demo.repository
 
-public interface OfferDataRepository extends JpaRepository<OfferData, Long> {
-}
+import com.prospektai.demo.model.OfferData
+import org.springframework.data.jpa.repository.JpaRepository
+
+interface OfferDataRepository : JpaRepository<OfferData?, Long?>
