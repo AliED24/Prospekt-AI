@@ -19,7 +19,7 @@ class UploadController(
     @PostMapping("/upload")
     fun uploadFile(
         @RequestParam("file") file: MultipartFile,
-        @RequestParam(value = "pagesPerChunk", defaultValue = "2") pagesPerChunk: Int
+        @RequestParam(value = "pagesPerChunk", defaultValue = "10") pagesPerChunk: Int
     ): ResponseEntity<String> {
         log.debug("Upload-Endpoint aufgerufen mit Datei=${file.originalFilename}")
         return try {
@@ -27,9 +27,9 @@ class UploadController(
             log.debug("processPdf erfolgreich durchgelaufen")
             ResponseEntity.ok("Datei erfolgreich verarbeitet und Angebote gespeichert.")
         } catch (e: Exception) {
-            log.error("Fehler bei der Verarbeitung:", e)
+            log.error("Fehler bei der Verarbeitung der PDF:", e)
             ResponseEntity.internalServerError()
-                .body("Fehler bei der Verarbeitung: ${e.message}")
+                .body("Fehler bei der Verarbeitung der PDF: ${e.message}")
         }
     }
 

@@ -24,9 +24,10 @@ spring:
     openai:
       api-key: ${OPENAI_API_KEY}
       base-url: https://api.edeka.digital/ai-dev-models/gen/oai
-      model: gpt-4o
+      model: gpt-4o-mini
       system-prompt: >
-        You are a system for offer recognition. Extract all promotional items from the uploaded PDF and Only include the following exact fields:
+        You are an information extraction system specialized in grocery promotions.
+        Return only the following fields exactly as specified, for each product:
         productName,
         storeName,
         brand,
@@ -35,16 +36,17 @@ spring:
         originalPrice,
         offerDateStart,
         offerDateEnd,
-        Important Notes:
-        Always return all date values in the DD.MM.YYYY format like 31.01.2000
-        If a product does not have a date listed directly next to the price, 
-        it is still possible that a group-level date applies to a set of products. In that case, apply the overarching date to all relevant items.
-        If there is no YEAR provided, assume the current year(2025).
-        if there is no offerDateEnd directy provided, just take the span from the beginning of the PDF where the end date is written.
-        the storeName is always the same from the PDF like Aldi,Rewe,Penny etc.
+        Important Extraction Rules:
+        If a product has no brand or original price, leave those fields empty.
+        All dates must be in format DD.MM.YYYY – e.g. 25.06.2025
+        If a product does not have an individual date near it, apply the date-range from the group or page header, or previous
+        pages which were sent.
+        If no year is present in the date, assume the current year (2025).
+        If no end date is shown, take the date-range from previous pages which where sent and dont assume random dates.
+        Do not add extra fields or explanations. Only return what is listed above
+
       user-prompt: >
-        Please extract all offers from the file and return them as a list of JSON objects including
-        productName, storeName, brand, quantity, price, originalPrice, offerDateStart and offerDateEnd.
+        Please extract all offers from the file and return them. 
 
 logging:
   level:

@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import com.prospektai.demo.model.OfferData
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.autoconfigure.data.web.SpringDataWebProperties
 import org.springframework.http.HttpStatusCode
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
@@ -18,7 +19,8 @@ import java.util.Base64
 @Component
 class OpenAiClient(
     private val webClient: WebClient,
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper,
+    private val springDataWebProperties: SpringDataWebProperties
 ) {
     private val log = LoggerFactory.getLogger(OpenAiClient::class.java)
 
@@ -36,7 +38,6 @@ class OpenAiClient(
         val bytes = Files.readAllBytes(imagePath)
         val base64 = Base64.getEncoder()
             .encodeToString(bytes)
-            .replace("\\s+".toRegex(), "")
         val dataUrl = "data:image/jpeg;base64,$base64"
         // System message
         val systemMessage: ObjectNode = objectMapper.createObjectNode().apply {
@@ -79,7 +80,7 @@ class OpenAiClient(
             put("type", "json_schema")
             putObject("json_schema").apply {
                 put("name", "extract_offers_response")
-                put("strict", false)
+                put("strict", true)
                 putObject("schema").apply {
                     put("type", "object")
                     putObject("properties").apply {
@@ -90,10 +91,10 @@ class OpenAiClient(
                                 putObject("properties").apply {
                                     putObject("storeName").put("type", "string")
                                     putObject("productName").put("type", "string")
-                                    putObject("brand").put("type", "string")
+                                    putObject("brand").put("type", "string").put("nullable", true)
                                     putObject("quantity").put("type", "string")
                                     putObject("price").put("type", "number")
-                                    putObject("originalPrice").put("type", "number")
+                                    putObject("originalPrice").put("type", "string").put("nullable", true)
                                     putObject("offerDateStart").put("type", "string")
                                     putObject("offerDateEnd").put("type", "string")
                                 }
@@ -101,6 +102,8 @@ class OpenAiClient(
                                     add("storeName")
                                     add("productName")
                                     add("quantity")
+                                    add("brand")
+                                    add("originalPrice")
                                     add("price")
                                     add("offerDateStart")
                                     add("offerDateEnd")
