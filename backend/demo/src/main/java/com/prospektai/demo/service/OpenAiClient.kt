@@ -7,7 +7,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import com.prospektai.demo.model.OfferData
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.autoconfigure.data.web.SpringDataWebProperties
 import org.springframework.http.HttpStatusCode
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
@@ -19,9 +18,9 @@ import java.util.Base64
 @Component
 class OpenAiClient(
     private val webClient: WebClient,
-    private val objectMapper: ObjectMapper,
-    private val springDataWebProperties: SpringDataWebProperties
-) {
+    private val objectMapper: ObjectMapper
+)
+{
     private val log = LoggerFactory.getLogger(OpenAiClient::class.java)
 
     @Value("\${spring.ai.openai.system-prompt}")

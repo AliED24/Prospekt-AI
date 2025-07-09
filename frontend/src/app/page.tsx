@@ -1,15 +1,16 @@
 'use client';
 import { Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState, useRef, ChangeEvent } from "react";
+import { useRef, ChangeEvent } from "react";
 import axios from "axios";
 import {useUpload} from "@/app/context/uploadContext";
-import {ThemeToggle} from "@/components/theme-toggle";
-
+import {envApi} from "@/utils/api";
 
 export default function Home() {
     const {isUploading, setIsUploading} = useUpload();
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+
 
     const handleUploadClick = () => {
         fileInputRef.current?.click();
@@ -24,7 +25,7 @@ export default function Home() {
                 const formData = new FormData();
                 formData.append('file', file);
 
-                const response = await axios.post('http://localhost:8080/api/upload', formData, {
+                const response = await envApi.post('/api/upload', formData, {
                     headers: {
                         'Content-Type': 'multipart/form-data'
                     }
@@ -34,6 +35,7 @@ export default function Home() {
                 }
             } catch (error) {
                 console.error('Upload fehlgeschlagen:', error);
+                alert("Der Upload ist fehlgeschlagen. Bitte versuchen Sie es erneut.");
             } finally {
                 setIsUploading(false);
             }

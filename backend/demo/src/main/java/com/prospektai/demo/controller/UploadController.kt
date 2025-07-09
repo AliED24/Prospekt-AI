@@ -19,7 +19,7 @@ class UploadController(
     @PostMapping("/upload")
     fun uploadFile(
         @RequestParam("file") file: MultipartFile,
-        @RequestParam(value = "pagesPerChunk", defaultValue = "10") pagesPerChunk: Int
+        @RequestParam(value = "pagesPerChunk", defaultValue = "5") pagesPerChunk: Int
     ): ResponseEntity<String> {
         log.debug("Upload-Endpoint aufgerufen mit Datei=${file.originalFilename}")
         return try {

@@ -5,6 +5,7 @@ import axios from "axios";
 import {OfferData} from "@/components/offerDataTableStructure/types/OfferData";
 import {columns} from "@/components/offerDataTableStructure/columns";
 import {DataTable} from "@/components/ui/data-table";
+import {envApi} from "@/utils/api";
 
 
 
@@ -17,7 +18,7 @@ export default function Page() {
         const fetchOffers = async () => {
             try {
                 setLoading(true);
-                const response = await axios.get<OfferData[]>("http://localhost:8080/api/offers");
+                const response = await envApi.get<OfferData[]>("/api/offers");
                 setOffers(response.data);
                 console.log("Der Response:",response.data[0])
             } catch (err: any) {

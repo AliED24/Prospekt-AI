@@ -6,7 +6,7 @@ spring:
     time-zone: Europe/Berlin
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/meinedb
+    url: jpostgresql://localhost:5432/meinedb
     username: meinuser
     password: meinpasswort
     driver-class-name: org.postgresql.Driver
@@ -24,7 +24,7 @@ spring:
     openai:
       api-key: ${OPENAI_API_KEY}
       base-url: https://api.edeka.digital/ai-dev-models/gen/oai
-      model: gpt-4o-mini
+      model: gemini-2.0-flash
       system-prompt: >
         You are an information extraction system specialized in grocery promotions.
         Return only the following fields exactly as specified, for each product:
@@ -46,7 +46,7 @@ spring:
         Do not add extra fields or explanations. Only return what is listed above
 
       user-prompt: >
-        Please extract all offers from the file and return them. 
+        Please extract all offers from the file and return them in the specified format.
 
 logging:
   level:
