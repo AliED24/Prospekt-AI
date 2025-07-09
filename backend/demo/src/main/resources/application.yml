@@ -6,7 +6,7 @@ spring:
     time-zone: Europe/Berlin
 
   datasource:
-    url: jpostgresql://localhost:5432/meinedb
+    url: jdbc:postgresql://localhost:5432/meinedb
     username: meinuser
     password: meinpasswort
     driver-class-name: org.postgresql.Driver
