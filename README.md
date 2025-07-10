@@ -1,4 +1,4 @@
-# Prospekt-AI 🤖📄
+# Prospekt-AI
 
 *KI-gestützter Prototyp zur automatisierten Erfassung von Angebotsdaten aus PDF-Prospekten*
 
