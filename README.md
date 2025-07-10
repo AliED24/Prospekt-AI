@@ -208,9 +208,7 @@ prospekt-ai/
 
 - `POST /api/upload` - PDF-Datei hochladen
 - `GET /api/offers` - Alle extrahierten Angebote abrufen
-- `GET /api/offers/{id}` - Spezifisches Angebot abrufen
-- `GET /api/processing/status` - Verarbeitungsstatus prüfen
-- `DELETE /api/offers/{id}` - Angebot löschen
+
 
 ## 🤝 Entwicklung
 
