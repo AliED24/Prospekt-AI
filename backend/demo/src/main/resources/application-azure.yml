@@ -1,0 +1,47 @@
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      connection-init-sql: SELECT 1
+      connection-timeout: 60000
+      maximum-pool-size: 5
+      minimum-idle: 1
+      # Azure-specific connection settings
+      connection-test-query: SELECT 1
+      test-while-idle: true
+      test-on-borrow: true
+      validation-timeout: 5000
+      idle-timeout: 300000
+      max-lifetime: 900000
+      # Disable fail-fast to prevent startup crashes
+      initialization-fail-timeout: -1
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        # Optimize for Azure PostgreSQL
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          lob:
+            non_contextual_creation: true
+        connection:
+          characterEncoding: utf8
+          useUnicode: true
+
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      base-url: https://api.edeka.digital/ai-dev-models/gen/oai
+      model: gemini-2.0-flash
+
+logging:
+  level:
+    root: INFO
+    com.prospektai.demo: INFO
+    org.springframework.jdbc: WARN
+    org.hibernate.SQL: WARN

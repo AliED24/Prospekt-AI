@@ -6,10 +6,15 @@ spring:
     time-zone: Europe/Berlin
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/meinedb
-    username: meinuser
-    password: meinpasswort
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/meinedb}
+    username: ${SPRING_DATASOURCE_USERNAME:meinuser}
+    password: ${SPRING_DATASOURCE_PASSWORD:meinpasswort}
     driver-class-name: org.postgresql.Driver
+    hikari:
+      connection-init-sql: SELECT 1
+      connection-timeout: 30000
+      maximum-pool-size: 10
+      minimum-idle: 2
 
   jpa:
     hibernate:

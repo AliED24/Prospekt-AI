@@ -21,10 +21,10 @@ class UploadController(
         @RequestParam("file") file: MultipartFile,
         @RequestParam(value = "pagesPerChunk", defaultValue = "5") pagesPerChunk: Int
     ): ResponseEntity<String> {
-        log.debug("Upload-Endpoint aufgerufen mit Datei=${file.originalFilename}")
+        log.info("Upload-Endpoint aufgerufen mit Datei=${file.originalFilename}, Größe=${file.size} bytes")
         return try {
             pdfProcessingService.processPdf(file, pagesPerChunk)
-            log.debug("processPdf erfolgreich durchgelaufen")
+            log.info("processPdf erfolgreich durchgelaufen für Datei=${file.originalFilename}")
             ResponseEntity.ok("Datei erfolgreich verarbeitet und Angebote gespeichert.")
         } catch (e: Exception) {
             log.error("Fehler bei der Verarbeitung der PDF:", e)
@@ -33,8 +33,19 @@ class UploadController(
         }
     }
 
+    @GetMapping("/health")
+    fun health(): ResponseEntity<Map<String, String>> {
+        log.info("Health check endpoint called")
+        return ResponseEntity.ok(mapOf(
+            "status" to "UP",
+            "timestamp" to java.time.Instant.now().toString(),
+            "service" to "handzettelki-backend"
+        ))
+    }
+
     @GetMapping("/offers")
     fun getAllOffers(): ResponseEntity<MutableList<OfferData?>> {
+        log.info("Get offers endpoint called")
         val allOffers = offerDataRepository.findAll()
         return ResponseEntity.ok(allOffers)
     }

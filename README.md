@@ -77,13 +77,11 @@ cd prospekt-ai
 
 2. **Umgebungsvariablen konfigurieren:**
 ```bash
-# Backend - OpenAI API Key in backend/demo/src/main/resources/application.properties
-spring.ai.openai.api-key=your-openai-api-key
-
-# Datenbank-Konfiguration
-spring.datasource.url=jdbc:postgresql://localhost:5432/prospekt_ai
-spring.datasource.username=your-db-username
-spring.datasource.password=your-db-password
+# Für lokale Entwicklung: .env Datei erstellen
+SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/prospekt_ai
+SPRING_DATASOURCE_USERNAME=your-db-username
+SPRING_DATASOURCE_PASSWORD=your-db-password
+OPENAI_API_KEY=your-openai-api-key
 ```
 
 3. **Anwendung starten:**
@@ -132,30 +130,48 @@ npm run dev
 
 ### Backend-Konfiguration
 
-**application.properties:**
-```properties
-# OpenAI Konfiguration
-spring.ai.openai.api-key=${OPENAI_API_KEY}
-spring.ai.openai.model=gpt-4
+**Erforderliche Umgebungsvariablen:**
+```bash
+# Datenbank-Verbindung
+SPRING_DATASOURCE_URL=jdbc:postgresql://your-host:5432/your-database
+SPRING_DATASOURCE_USERNAME=your-username
+SPRING_DATASOURCE_PASSWORD=your-password
 
-# Datenbank
-spring.datasource.url=jdbc:postgresql://localhost:5432/prospekt_ai
-spring.datasource.username=${DB_USERNAME}
-spring.datasource.password=${DB_PASSWORD}
+# AI-Service
+OPENAI_API_KEY=your-openai-api-key
 
-# JPA/Hibernate
-spring.jpa.hibernate.ddl-auto=update
-spring.jpa.show-sql=true
+# Optional: Aktives Profil (für Azure: azure)
+SPRING_PROFILES_ACTIVE=default
+```
 
-# Batch Processing
-spring.batch.job.enabled=true
+**Azure Deployment:**
+```bash
+# Azure PostgreSQL mit SSL
+SPRING_DATASOURCE_URL=jdbc:postgresql://your-server.postgres.database.azure.com:5432/your-database?sslmode=require
+SPRING_DATASOURCE_USERNAME=your-username
+SPRING_DATASOURCE_PASSWORD=your-password
+OPENAI_API_KEY=your-openai-api-key
+SPRING_PROFILES_ACTIVE=azure
+
+# Wichtig: 
+# - Azure PostgreSQL Firewall-Regeln konfigurieren
+# - "Allow access to Azure services" aktivieren
 ```
 
 ### Frontend-Konfiguration
 
-**.env.local:**
+**Erforderliche Umgebungsvariablen:**
+Wichtig: Diese müssen zum Buildzeitpunkt gesetzt sein.
+
 ```bash
+# Backend API URL
 NEXT_PUBLIC_BACKEND_URL=http://localhost:8080
+```
+
+**Azure Deployment:**
+```bash
+# URL des deployed Backend-Services
+NEXT_PUBLIC_BACKEND_URL=https://your-backend-app.azurecontainerapps.io
 ```
 
 ## 📁 Projektstruktur
