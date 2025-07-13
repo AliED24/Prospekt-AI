@@ -79,25 +79,40 @@ export function DataTable<TData extends object, TValue>({
         getFilteredRowModel: getFilteredRowModel(),
         filterFns: {
             dateBetween: (row, columnId, filterValue: DateRange | undefined) => {
-                if (!filterValue?.from && !filterValue?.to) return true
-                const value = row.getValue(columnId) as string
-                if (!value) return true
+                if (!filterValue?.from && !filterValue?.to) return true;
+                
+                const dateStr = row.getValue(columnId) as string;
+                if (!dateStr) return true;
+                
                 try {
-                    const [day, month, year] = value.split('.')
-                    if (!day || !month || !year) return true
-                    const date = new Date(+year, +month - 1, +day)
-                    date.setHours(12, 0, 0, 0)
-                    const from = filterValue.from ? new Date(filterValue.from) : null
-                    const to = filterValue.to ? new Date(filterValue.to) : null
-                    if (from) from.setHours(0, 0, 0, 0)
-                    if (to) to.setHours(23, 59, 59, 999)
-                    if (from && to) return date >= from && date <= to
-                    if (from) return date >= from
-                    if (to) return date <= to
-                } catch {
-                    return true
+                    // Parse das aktuelle Datum
+                    const [day, month, year] = dateStr.split('.');
+                    if (!day || !month || !year) return true;
+                    
+                    const date = new Date(+year, +month - 1, +day);
+                    date.setHours(0, 0, 0, 0);
+                    
+                    const filterStart = filterValue.from ? new Date(filterValue.from) : null;
+                    const filterEnd = filterValue.to ? new Date(filterValue.to) : null;
+                    
+                    if (filterStart) filterStart.setHours(0, 0, 0, 0);
+                    if (filterEnd) filterEnd.setHours(0, 0, 0, 0);
+                    
+                    // Prüfe ob das Datum im Filterbereich liegt
+                    if (filterStart && filterEnd) {
+                        return date >= filterStart && date <= filterEnd;
+                    }
+                    if (filterStart) {
+                        return date >= filterStart;
+                    }
+                    if (filterEnd) {
+                        return date <= filterEnd;
+                    }
+                } catch (error) {
+                    console.error('Datum Parsing Fehler:', error);
+                    return true;
                 }
-                return true
+                return true;
             },
         },
         state: {
@@ -112,11 +127,14 @@ export function DataTable<TData extends object, TValue>({
     // Filter by date range
     React.useEffect(() => {
         if (dateRange?.from || dateRange?.to) {
-            table.getColumn('offerDateStart')?.setFilterValue(dateRange)
+            // Wende den Filter auf beide Datumsspalten an
+            table.getColumn('offerDateStart')?.setFilterValue(dateRange);
+            table.getColumn('offerDateEnd')?.setFilterValue(dateRange);
         } else {
-            table.getColumn('offerDateStart')?.setFilterValue(undefined)
+            table.getColumn('offerDateStart')?.setFilterValue(undefined);
+            table.getColumn('offerDateEnd')?.setFilterValue(undefined);
         }
-    }, [dateRange, table])
+    }, [dateRange, table]);
 
     return (
         <div className="space-y-4">
