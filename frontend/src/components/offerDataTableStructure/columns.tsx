@@ -50,6 +50,7 @@ export const columns: ColumnDef<OfferData>[] = [
     {
         accessorKey: "offerDateEnd",
         header: "Angebotsdatum-Ende",
+        filterFn: "dateBetween",
         size: 160,
     },
     {
