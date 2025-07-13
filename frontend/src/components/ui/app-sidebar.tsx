@@ -69,7 +69,7 @@ export function AppSidebar() {
                 </SidebarGroup>
             </SidebarContent>
             <div className="p-4 text-xs text-muted-foreground">
-                Entwickelt von Ali Alizadeh aus dem Geschäftsbereich-IT
+                Entwickelt vom Werkstudenten Ali Alizadeh aus dem Geschäftsbereich IT
             </div>
         </Sidebar>
     );
