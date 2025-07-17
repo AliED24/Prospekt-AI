@@ -36,7 +36,7 @@ export default function Page() {
             title: "Gesamtangebote",
             value: offers.length,
             icon: FileText,
-            description: "Erfasste Angebote"
+            description: " Angebote"
         },
         {
             title: "Letzte Aktualisierung",
@@ -65,11 +65,7 @@ export default function Page() {
                         </div>
                     </div>
                     
-                    {offers.length > 0 && (
-                        <Badge variant="secondary" className="text-sm">
-                            {offers.length} Angebot{offers.length !== 1 ? 'e' : ''} gefunden
-                        </Badge>
-                    )}
+
                 </div>
 
                 {/* Stats Cards */}

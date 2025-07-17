@@ -46,19 +46,19 @@ export function AppSidebar() {
                                     <SidebarMenuButton 
                                         asChild 
                                         isActive={pathname === item.url}
-                                        className="group transition-all duration-200 hover:bg-sidebar-accent/50"
+                                        className="group transition-all duration-200 ease-in-out"
                                     >
-                                        <Link href={item.url} className="flex items-center gap-3 p-3 rounded-lg">
+                                        <Link href={item.url} className="flex items-center gap-3 p-5 rounded-lg">
                                             <div className={`p-2 rounded-lg transition-all duration-200 ${
                                                 pathname === item.url 
-                                                    ? 'bg-primary text-primary-foreground scale-110' 
+                                                    ? 'bg-primary text-primary-foreground scale-105' 
                                                     : 'bg-sidebar-accent/50 text-sidebar-accent-foreground group-hover:bg-sidebar-accent'
                                             }`}>
-                                                <item.icon className="h-4 w-4" />
+                                                <item.icon className="h-3.5 w-3.5" />
                                             </div>
                                             <div className="flex-1 text-left">
-                                                <div className={`font-medium ${pathname === item.url ? 'scale-105' : ''}`}>{item.title}</div>
-                                                <div className="text-xs text-muted-foreground">{item.description}</div>
+                                                <div className={`text-sm font-medium ${pathname === item.url ? 'scale-[1.02]' : ''}`}>{item.title}</div>
+                                                <div className="text-[10px] text-muted-foreground">{item.description}</div>
                                             </div>
                                         </Link>
                                     </SidebarMenuButton>

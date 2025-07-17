@@ -3,7 +3,6 @@ import { Upload, FileText, Zap, Shield, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { LoadingOverlay } from "@/components/ui/loading";
-import { BackgroundBeamsWithCollision } from "@/components/ui/background-beams-with-collision";
 import { useRef, ChangeEvent } from "react";
 import { useUpload } from "@/app/context/uploadContext";
 import { envApi } from "@/utils/api";
@@ -67,7 +66,7 @@ export default function Home() {
 
     return (
         <>
-            <BackgroundBeamsWithCollision className="w-full">
+            <div className="w-full mt-5">
                 <div className="relative z-20 text-center">
                     <div className="mb-8">
                         <div className="inline-flex items-center rounded-full bg-primary/10 px-4 py-2 text-sm font-medium text-primary ring-1 ring-inset ring-primary/20 mb-6">
@@ -82,7 +81,7 @@ export default function Home() {
                         </h1>
                         <p className="text-lg leading-8 text-muted-foreground max-w-2xl mx-auto mb-12">
                             Ein intelligenter Assistent zur automatisierten Extraktion von Angebotsdaten aus PDF-Prospekten. 
-                            Sparen Sie Zeit und reduzieren Sie Fehler bei der manuellen Dateneingabe.
+
                         </p>
 
                         {/* Upload Section */}
@@ -93,7 +92,7 @@ export default function Home() {
                                     Wählen Sie eine PDF-Datei aus, um die Analyse zu starten
                                 </CardDescription>
                             </CardHeader>
-                            <CardContent className="text-center pb-6">
+                            <CardContent className=" flex text-center pb-6 justify-center">
                                 <input
                                     type="file"
                                     ref={fileInputRef}
@@ -101,15 +100,16 @@ export default function Home() {
                                     accept=".pdf"
                                     className="hidden"
                                 />
-                                <Button 
-                                    onClick={handleUploadClick} 
+                                <Button
+                                    onClick={handleUploadClick}
                                     disabled={isUploading}
                                     size="lg"
-                                    className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 transition-all duration-300 transform hover:scale-105"
+                                    className="aspect-square w-30 h-30 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 transition-all duration-300 transform hover:scale-105 flex flex-col items-center justify-center gap-2"
                                 >
-                                    <Upload className="mr-2 h-5 w-5" />
-                                    <span>{isUploading ? 'Verarbeite...' : 'PDF auswählen'}</span>
+                                    <Upload className="h-8 w-8" />
+                                    <span className="text-center text-sm">{isUploading ? 'Verarbeite...' : 'PDF auswählen'}</span>
                                 </Button>
+
                             </CardContent>
                         </Card>
                     </div>
@@ -118,7 +118,7 @@ export default function Home() {
                 {isUploading && (
                     <LoadingOverlay message="Der Ladevorgang kann einige Minuten dauern. Bitte warten Sie..." />
                 )}
-            </BackgroundBeamsWithCollision>
+            </div>
             
             {/* Features Section */}
             <div className="py-16 bg-background">
