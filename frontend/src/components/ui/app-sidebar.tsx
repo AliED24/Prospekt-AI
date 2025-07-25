@@ -26,7 +26,7 @@ export function AppSidebar() {
 
     return (
         <Sidebar>
-            <SidebarContent>
+            <SidebarContent className="flex flex-col h-full">
                 <SidebarGroup>
                     <SidebarGroupLabel className="text-2xl font-bold">
                         Prospekt-AI
@@ -46,6 +46,9 @@ export function AppSidebar() {
                         </SidebarMenu>
                     </SidebarGroupContent>
                 </SidebarGroup>
+                <div className="mt-auto p-4 text-xs text-muted-foreground">
+                    Entwickelt vom Werkstudenten Ali Alizadeh aus dem Geschäftsbereich IT
+                </div>
             </SidebarContent>
         </Sidebar>
     );

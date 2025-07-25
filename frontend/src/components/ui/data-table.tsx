@@ -12,6 +12,7 @@ import {
     SortingState,
     useReactTable,
 } from "@tanstack/react-table"
+import * as XLSX from 'xlsx'
 
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
@@ -32,7 +33,7 @@ interface DataTableProps<TData, TValue> {
 }
 
 export function DataTable<TData, TValue>({columns, data, isLoading}: DataTableProps<TData, TValue>) {
-    const [sorting, setSorting] = React.useState<SortingState>([])
+    const [sorting, setSorting] = React.useState<SortingState>([{id: "id", desc: true}])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 
     const table = useReactTable({
@@ -52,12 +53,23 @@ export function DataTable<TData, TValue>({columns, data, isLoading}: DataTablePr
             pagination: {
                 pageSize: 15,
             },
+            sorting: [{id: "id", desc: true}],
         },
     })
 
+    const exportToXLSX = () => {
+        const filteredData = table.getFilteredRowModel().rows.map(row => row.original)
+        const worksheet = XLSX.utils.json_to_sheet(filteredData)
+        const workbook = XLSX.utils.book_new()
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Angebote")
+        
+        const fileName = `angebote_${new Date().toISOString().split('T')[0]}.xlsx`
+        XLSX.writeFile(workbook, fileName)
+    }
+
     return (
         <div className="w-full max-w-8xl"> {/* Maximale Breite begrenzt */}
-            <div className="flex items-center py-4">
+            <div className="flex items-center justify-between py-4">
                 <Input
                     placeholder="Nach Produktname filtern..."
                     value={(table.getColumn("productName")?.getFilterValue() as string) ?? ""}
@@ -66,6 +78,9 @@ export function DataTable<TData, TValue>({columns, data, isLoading}: DataTablePr
                     }
                     className="max-w-sm"
                 />
+                <Button onClick={exportToXLSX} variant="outline">
+                    Als Excel exportieren
+                </Button>
             </div>
             <div className="rounded-md border">
                 <div className="overflow-x-auto">
