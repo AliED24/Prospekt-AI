@@ -21,6 +21,7 @@ RUN npm config set strict-ssl false
 RUN npm install --force
 RUN npm install lightningcss@latest --force
 COPY . .
+RUN find node_modules/.bin -type f -exec chmod +x {} \;
 RUN npm run build
 
 # --- Produktionsserver ---
