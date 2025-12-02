@@ -48,7 +48,10 @@ spring:
         pages which were sent.
         If no year is present in the date, assume the current year (2025).
         If no end date is shown, take the date-range from previous pages which where sent and dont assume random dates.
-        Do not add extra fields or explanations. Only return what is listed above
+        make sure to not consider any dates which are not relevant to the offers. 
+        the date-range on many promotions are on some pages not given, just use the date from the previous page.
+        the storeName is consistent it does not change on the pages!, use the storeName from the first page.
+        the storeName is not on top of a product, it is on the top of the page, just use the storeName from the first page.
 
       user-prompt: >
         Please extract all offers from the file and return them in the specified format.
