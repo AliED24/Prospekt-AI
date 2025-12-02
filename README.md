@@ -22,7 +22,7 @@ Prospekt-AI ist eine intelligente Anwendung, die entwickelt wurde, um automatisc
 
 ##  Systemarchitektur
 
-### Backend (Java/Kotlin-Spring Boot)
+### Backend (Java-Spring Boot)
 
 - **Framework**: Spring Boot 3.5.0 mit Java 21
 - **KI-Integration**: Spring AI mit OpenAI GPT-Modellen
