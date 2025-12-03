@@ -4,8 +4,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.prospektai.demo.model.OfferData;
+import com.prospektai.demo.Entity.OfferEntity;
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,8 +21,7 @@ import java.util.Base64;
 import java.util.List;
 
 @Component
-@AllArgsConstructor
-
+@RequiredArgsConstructor
 public class OpenAiClient {
 
     private static final Logger log = LoggerFactory.getLogger(OpenAiClient.class);
@@ -38,7 +38,7 @@ public class OpenAiClient {
     @Value("${spring.ai.openai.model}")
     private String model;
 
-    public List<OfferData> extractOffers(Path imagePath) throws Exception {
+    public List<OfferEntity> extractOffers(Path imagePath) throws Exception {
         byte[] bytes = Files.readAllBytes(imagePath);
         String base64 = Base64.getEncoder().encodeToString(bytes);
         String dataUrl = "data:image/jpeg;base64," + base64;
@@ -146,9 +146,9 @@ public class OpenAiClient {
             throw new RuntimeException("Antwort enthält kein 'offers' Feld");
         }
 
-        List<OfferData> offers = objectMapper.convertValue(
+        List<OfferEntity> offers = objectMapper.convertValue(
                 offersArrayNode,
-                objectMapper.getTypeFactory().constructCollectionType(List.class, OfferData.class)
+                objectMapper.getTypeFactory().constructCollectionType(List.class, OfferEntity.class)
         );
 
         log.info("Chunk {}: {} Angebote erhalten", imagePath.getFileName(), offers.size());

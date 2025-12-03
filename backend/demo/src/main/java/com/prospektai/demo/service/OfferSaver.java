@@ -1,7 +1,7 @@
 // java
 package com.prospektai.demo.service;
 
-import com.prospektai.demo.model.OfferData;
+import com.prospektai.demo.Entity.OfferEntity;
 import com.prospektai.demo.repository.OfferDataRepository;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
@@ -18,7 +18,7 @@ public class OfferSaver {
 
     private final OfferDataRepository repository;
 
-    public void saveAll(List<OfferData> offers) {
+    public void saveAll(List<OfferEntity> offers) {
         if (offers == null || offers.isEmpty()) {
             log.warn("Keine Angebote zum Speichern erhalten.");
             return;

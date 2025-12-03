@@ -1,6 +1,5 @@
 package com.prospektai.demo.service;
-
-import com.prospektai.demo.model.OfferData;
+import com.prospektai.demo.Entity.OfferEntity;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
@@ -43,7 +42,7 @@ public class PdfProcessingService {
                 List<Path> jpegPaths = convertPdfToJpeg(chunkPath);
                 for (Path jpegPath : jpegPaths) {
                     try {
-                        List<OfferData> offers = openAiClient.extractOffers(jpegPath);
+                        List<OfferEntity> offers = openAiClient.extractOffers(jpegPath);
                         offerSaver.saveAll(offers);
                     } catch (Exception e) {
                         logger.error("Fehler bei der Verarbeitung des Bildes {}: {}", jpegPath, e.getMessage(), e);

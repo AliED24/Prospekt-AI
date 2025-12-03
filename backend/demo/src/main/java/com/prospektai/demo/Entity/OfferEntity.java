@@ -1,4 +1,4 @@
-package com.prospektai.demo.model;
+package com.prospektai.demo.Entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
@@ -11,12 +11,12 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class OfferData {
+public class OfferEntity {
 
         @Id
         @GeneratedValue(strategy = GenerationType.IDENTITY)
-        private Long id;
 
+        private Long id;
         private String storeName;
         private String productName;
         private String brand;
@@ -27,7 +27,6 @@ public class OfferData {
         @Column(columnDefinition = "DATE")
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd.MM.yyyy")
         private LocalDate offerDateStart;
-
         @Column(columnDefinition = "DATE")
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd.MM.yyyy")
         private LocalDate offerDateEnd;
