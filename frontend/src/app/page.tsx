@@ -46,24 +46,6 @@ export default function Home() {
         }
     };
 
-    const features = [
-        {
-            icon: FileText,
-            title: "Intelligente Extraktion",
-            description: "KI-gestützte Erkennung und Extraktion von Angebotsdaten aus PDF-Prospekten"
-        },
-        {
-            icon: Zap,
-            title: "Schnelle Verarbeitung",
-            description: "Automatisierte Analyse in wenigen Minuten statt manueller Stundenarbeit"
-        },
-        {
-            icon: BarChart3,
-            title: "Strukturierte Ausgabe",
-            description: "Übersichtliche Darstellung aller extrahierten Daten in Tabellenform"
-        }
-    ];
-
     return (
         <>
             <div className="w-full mt-5">
@@ -114,41 +96,9 @@ export default function Home() {
                         </Card>
                     </div>
                 </div>
-                {/* Loading State */}
                 {isUploading && (
                     <LoadingOverlay message="Der Ladevorgang kann einige Minuten dauern. Bitte warten Sie..." />
                 )}
-            </div>
-            
-            {/* Features Section */}
-            <div className="py-16 bg-background">
-                <div className="max-w-7xl mx-auto px-6">
-                    <div className="text-center mb-16">
-                        <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-                            Warum Prospekt-AI?
-                        </h2>
-                        <p className="mt-4 text-lg text-muted-foreground">
-                            Entdecken Sie die Vorteile unserer KI-gestützten Lösung
-                        </p>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
-                        {features.map((feature, index) => (
-                            <Card key={feature.title} className="group hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 bg-card/50 backdrop-blur-sm">
-                                <CardHeader className="text-center">
-                                    <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors duration-300">
-                                        <feature.icon className="h-6 w-6 text-primary" />
-                                    </div>
-                                    <CardTitle className="text-lg">{feature.title}</CardTitle>
-                                </CardHeader>
-                                <CardContent className="text-center">
-                                    <CardDescription className="text-sm leading-relaxed">
-                                        {feature.description}
-                                    </CardDescription>
-                                </CardContent>
-                            </Card>
-                        ))}
-                    </div>
-                </div>
             </div>
         </>
     );
