@@ -68,9 +68,7 @@ export function AppSidebar() {
                     </SidebarGroupContent>
                 </SidebarGroup>
             </SidebarContent>
-            <div className="p-4 text-xs text-muted-foreground">
-                Entwickelt vom Werkstudenten Ali Alizadeh aus dem Geschäftsbereich IT
-            </div>
+            {/*Hier kommt Login/Logout Benutzerverwaltung*/}
         </Sidebar>
     );
 }
