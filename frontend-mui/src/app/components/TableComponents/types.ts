@@ -1,0 +1,21 @@
+export interface OfferDataTypes {
+    id: number;
+    productName: string;
+    productDescription?: string;
+    originalPrice?: number | string;
+    price?: number | string;
+    offerDateStart?: string;
+    offerDateEnd?: string;
+    storeName?: string;
+    brand?: string;
+    [key: string]: any;
+}
+
+export type Order = 'asc' | 'desc';
+
+export interface HeadCell {
+    id: keyof OfferDataTypes;
+    label: string;
+    numeric: boolean;
+    width?: number;
+}

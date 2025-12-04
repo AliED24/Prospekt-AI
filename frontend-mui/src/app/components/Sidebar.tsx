@@ -1,3 +1,4 @@
+// frontend-mui/src/app/components/Sidebar.tsx
 'use client';
 
 import React from 'react';
@@ -22,13 +23,7 @@ const SidebarItems = [
         url: "/",
         icon: Home,
         description: "Übersicht & Upload"
-    },
-    {
-        title: "Ergebnisse",
-        url: "/results",
-        icon: Inbox,
-        description: "Verarbeitete Angebote"
-    },
+    }
 ];
 
 interface SidebarProps {
@@ -39,7 +34,7 @@ export function Sidebar({ width = 280 }: SidebarProps) {
     const pathname = usePathname();
 
     const sidebarContent = (
-        <div className="w-full h-full bg-[#2a2a2a] flex flex-col ">
+        <div className="w-full h-full bg-[#2f3234] flex flex-col ">
             {/* Header */}
             <div className="px-4 py-6">
                 <h1 className=" text-left ml-2.5 text-lg font-bold text-[#fce531]">
@@ -57,7 +52,7 @@ export function Sidebar({ width = 280 }: SidebarProps) {
                             <ListItem key={item.title} disablePadding>
                                 <ListItemButton
                                     component={Link}
-                                    href={item. url}
+                                    href={item.url}
                                     className={`
                                         rounded
                                         ${isActive ? 'bg-[#fce531]/15' : ''}
@@ -68,7 +63,7 @@ export function Sidebar({ width = 280 }: SidebarProps) {
                                             p-2 rounded flex items-center justify-center
                                             ${isActive
                                             ? 'bg-[#fce531] text-[#2a2a2a]'
-                                            : 'bg-white/10 text-[#ededed]'
+                                            : 'bg-white/8 text-[#ededed]'
                                         }
                                         `}>
                                             <IconComponent style={{ fontSize: 14 }} />
@@ -114,8 +109,8 @@ export function Sidebar({ width = 280 }: SidebarProps) {
                     width: width,
                     boxSizing: 'border-box',
                     border: 'none',
-                    backgroundColor: '#2a2a2a',
-                    boxShadow: 'initial',
+                    boxShadow: '1px 0 1px',
+
                 },
             }}
         >
