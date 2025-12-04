@@ -23,7 +23,7 @@ public class OfferEntity {
         private String quantity;
         private String price;
         private String originalPrice;
-       // private String associatedPdfFile;
+        private String associatedPdfFile;
 
         @Column(columnDefinition = "DATE")
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd.MM.yyyy")

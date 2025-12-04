@@ -1,5 +1,6 @@
 package com.prospektai.demo.service;
 import com.prospektai.demo.Entity.OfferEntity;
+import lombok.RequiredArgsConstructor;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
@@ -18,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class PdfProcessingService {
 
     private static final Logger logger = LoggerFactory.getLogger(PdfProcessingService.class);
@@ -26,16 +28,16 @@ public class PdfProcessingService {
     private final OpenAiClient openAiClient;
     private final OfferSaver offerSaver;
 
-    public PdfProcessingService(PdfSplitter pdfSplitter, OpenAiClient openAiClient, OfferSaver offerSaver) {
-        this.pdfSplitter = pdfSplitter;
-        this.openAiClient = openAiClient;
-        this.offerSaver = offerSaver;
-    }
-
     @Transactional
     public void processPdf(MultipartFile multipartFile, int pagesPerChunk) throws Exception {
         Path tempFile = Files.createTempFile("upload-", "-" + multipartFile.getOriginalFilename());
         multipartFile.transferTo(tempFile.toFile());
+
+        String originalFilename = multipartFile.getOriginalFilename();
+        if (originalFilename == null || originalFilename.isBlank()) {
+            originalFilename = tempFile.getFileName().toString();
+        }
+
         try {
             List<Path> chunkPaths = pdfSplitter.split(tempFile, pagesPerChunk);
             for (Path chunkPath : chunkPaths) {
@@ -43,6 +45,11 @@ public class PdfProcessingService {
                 for (Path jpegPath : jpegPaths) {
                     try {
                         List<OfferEntity> offers = openAiClient.extractOffers(jpegPath);
+
+                        for (OfferEntity offer : offers) {
+                            offer.setAssociatedPdfFile(originalFilename);
+                        }
+
                         offerSaver.saveAll(offers);
                     } catch (Exception e) {
                         logger.error("Fehler bei der Verarbeitung des Bildes {}: {}", jpegPath, e.getMessage(), e);
