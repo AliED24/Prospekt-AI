@@ -1,30 +1,13 @@
 'use client';
 
 import React, { useState, useEffect, useRef, ChangeEvent } from 'react';
-import { OffersTable, COLORS, OfferDataTypes } from '@/app/components/TableComponents'
-
-import {
-    Box,
-    Typography,
-    Button,
-    Alert,
-    Snackbar,
-    CircularProgress,
-} from '@mui/material';
+import { OffersTable, OfferDataTypes } from '@/app/components/TableComponents';
+import { Button, Alert, Snackbar, CircularProgress } from '@mui/material';
 import { Upload } from '@mui/icons-material';
-
-// ============================================================================
-// CONSTANTS
-// ============================================================================
 
 const API_BASE = 'http://localhost:8080';
 
-// ============================================================================
-// MAIN COMPONENT
-// ============================================================================
-
 export default function OffersPage() {
-    // State
     const [offers, setOffers] = useState<OfferDataTypes[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isUploading, setIsUploading] = useState(false);
@@ -33,17 +16,12 @@ export default function OffersPage() {
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // ========================================================================
-    // DATA FETCHING
-    // ========================================================================
-
     const fetchOffers = async () => {
         try {
             setIsLoading(true);
             const response = await fetch(`${API_BASE}/api/offers`);
-            if (!response.ok) throw new Error('Fehler beim Laden der Angebote');
+            if (! response.ok) throw new Error('Fehler beim Laden der Angebote');
             const data = await response.json();
-            console.log(data)
             setOffers(data);
         } catch (err: any) {
             setError(err. message);
@@ -56,12 +34,8 @@ export default function OffersPage() {
         fetchOffers();
     }, []);
 
-    // ========================================================================
-    // HANDLERS
-    // ========================================================================
-
     const handleUploadClick = () => {
-        fileInputRef.current?. click();
+        fileInputRef. current?.click();
     };
 
     const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -104,88 +78,66 @@ export default function OffersPage() {
             setOffers((prev) => prev.filter((offer) => offer.id !== id));
             setSuccess('Datensatz erfolgreich gelöscht');
         } catch (err: any) {
-            setError(err.message);
+            setError(err. message);
             throw err;
         }
     };
 
-    // ========================================================================
-    // RENDER
-    // ========================================================================
-
     return (
-        <Box sx={{ minHeight: '100vh', backgroundColor: COLORS.background, p: 3 }}>
-            <Box sx={{ maxWidth: '100%', mx: 'auto' }}>
+        <div className="min-h-screen bg-bg p-6">
+            <div className="max-w-full mx-auto">
                 {/* Header */}
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
-                    <Box>
-                        <Typography variant="h5" sx={{ fontWeight: 'bold', color: COLORS. foreground }}>
-                            Angebotsübersicht
-                        </Typography>
-                        <Typography variant="body2" sx={{ color: `${COLORS.foreground}99` }}>
-                            {offers.length} Angebote insgesamt
-                        </Typography>
-                    </Box>
+                <div className="flex items-center justify-between mb-6">
+                    <div>
+                        <h1 className="text-xl font-bold text-fg">Angebotsübersicht</h1>
+                        <p className="text-sm text-fg/60">{offers.length} Angebote insgesamt</p>
+                    </div>
 
-                    {/* Upload Button */}
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <div>
                         <input
                             type="file"
                             ref={fileInputRef}
                             onChange={handleFileChange}
                             accept=".pdf"
-                            style={{ display: 'none' }}
+                            className="hidden"
                         />
                         <Button
                             variant="outlined"
                             size="small"
-                            startIcon={isUploading ? <CircularProgress size={16} /> : <Upload />}
+                            startIcon={isUploading ? <CircularProgress size={16} className="!text-accent" /> : <Upload />}
                             onClick={handleUploadClick}
                             disabled={isUploading}
-                            sx={{
-                                borderColor: COLORS.accent,
-                                color: COLORS.accent,
-                                '&:hover': {
-                                    borderColor: COLORS. accent,
-                                    backgroundColor: `${COLORS.accent}1a`,
-                                },
-                            }}
+                            className="!border-accent !text-accent hover:!bg-accent/10"
                         >
-                            {isUploading ? 'Verarbeite...' : 'PDF hochladen'}
+                            {isUploading ?  'Verarbeite...' : 'PDF hochladen'}
                         </Button>
-                    </Box>
-                </Box>
+                    </div>
+                </div>
 
-                {/* Table */}
                 <OffersTable
                     data={offers}
                     isLoading={isLoading}
                     onDelete={handleDelete}
                 />
-            </Box>
+            </div>
 
-            {/* Snackbars */}
             <Snackbar
                 open={!! error}
                 autoHideDuration={5000}
                 onClose={() => setError(null)}
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
             >
-                <Alert severity="error" onClose={() => setError(null)}>
-                    {error}
-                </Alert>
+                <Alert severity="error" onClose={() => setError(null)}>{error}</Alert>
             </Snackbar>
 
             <Snackbar
-                open={!!success}
+                open={!! success}
                 autoHideDuration={3000}
                 onClose={() => setSuccess(null)}
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
             >
-                <Alert severity="success" onClose={() => setSuccess(null)}>
-                    {success}
-                </Alert>
+                <Alert severity="success" onClose={() => setSuccess(null)}>{success}</Alert>
             </Snackbar>
-        </Box>
+        </div>
     );
 }

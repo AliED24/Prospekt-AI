@@ -1,13 +1,5 @@
 import { HeadCell } from './types';
 
-export const COLORS = {
-    background: '#343434',
-    backgroundLight: '#3d3d3d',
-    foreground: '#ededed',
-    accent: '#fce531',
-    border: 'rgba(237, 237, 237, 0. 1)',
-};
-
 export const headCells: HeadCell[] = [
     { id: 'productName', label: 'Produktname', numeric: false, width: 200 },
     { id: 'storeName', label: 'Einzelhändler', numeric: false, width: 120 },
