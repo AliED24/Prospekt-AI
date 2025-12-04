@@ -8,4 +8,5 @@ export const headCells: HeadCell[] = [
     { id: 'offerDateStart', label: 'Gültig von', numeric: false, width: 100 },
     { id: 'offerDateEnd', label: 'Gültig bis', numeric: false, width: 100 },
     { id: 'brand', label: 'Marke', numeric: false, width: 120 },
+    { id: 'associatedPdfFile', label: 'PDF-Datei', numeric: false, width: 200 },
 ];

@@ -7,6 +7,7 @@ export interface OfferDataTypes {
     offerDateStart?: string;
     offerDateEnd?: string;
     storeName?: string;
+    associatedPdfFile?: string;
     brand?: string;
     [key: string]: any;
 }

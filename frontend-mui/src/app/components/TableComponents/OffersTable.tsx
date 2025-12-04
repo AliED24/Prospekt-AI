@@ -227,6 +227,9 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
                                     <TableCell sx={cellSx}>
                                         {row.brand || '-'}
                                     </TableCell>
+                                    <TableCell sx={cellSx}>
+                                        {row.associatedPdfFile || '-'}
+                                    </TableCell>
                                     <TableCell align="center" sx={cellSx}>
                                         <IconButton
                                             size="small"
