@@ -82,7 +82,7 @@ public class OpenAiClient {
                 "response_format", responseFormat
         );
 
-        log.debug("OpenAI Payload (kurz): model={}, messagesCount={}", model, messages.size());
+        log.debug(" Payload (kurz): model={}, messagesCount={}", model, messages.size());
 
         JsonNode response = webClient.post()
                 .uri("/chat/completions")
