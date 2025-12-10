@@ -4,8 +4,7 @@ import React, { useState, useEffect, useRef, ChangeEvent } from 'react';
 import { OffersTable, OfferDataTypes } from '@/app/components/TableComponents';
 import { Button, Alert, Snackbar, CircularProgress } from '@mui/material';
 import { Upload } from '@mui/icons-material';
-
-const API_BASE = 'http://localhost:8080';
+import axios from "axios";
 
 export default function OffersPage() {
     const [offers, setOffers] = useState<OfferDataTypes[]>([]);
@@ -19,19 +18,20 @@ export default function OffersPage() {
     const fetchOffers = async () => {
         try {
             setIsLoading(true);
-            const response = await fetch(`${API_BASE}/api/offers`);
-            if (! response.ok) throw new Error('Fehler beim Laden der Angebote');
-            const data = await response.json();
-            setOffers(data);
+            const response = await axios.get<OfferDataTypes[]>(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/offers`);
+            setOffers(response.data);
         } catch (err: any) {
-            setError(err. message);
+            setError(
+                err?.response?.data?.message ?? err?.message ?? 'Fehler beim Laden der Angebote'
+            );
         } finally {
             setIsLoading(false);
         }
     };
 
+
     useEffect(() => {
-        fetchOffers();
+        fetchOffers()
     }, []);
 
     const handleUploadClick = () => {
@@ -49,14 +49,11 @@ export default function OffersPage() {
             setIsUploading(true);
             const formData = new FormData();
             formData.append('file', file);
-
-            const response = await fetch(`${API_BASE}/api/upload`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/upload`, {
                 method: 'POST',
                 body: formData,
             });
-
             if (!response.ok) throw new Error('Upload fehlgeschlagen');
-
             setSuccess('PDF erfolgreich verarbeitet');
             await fetchOffers();
         } catch (err: any) {
@@ -69,12 +66,10 @@ export default function OffersPage() {
 
     const handleDelete = async (id: number) => {
         try {
-            const response = await fetch(`${API_BASE}/api/offers/${id}`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/offers/${id}`, {
                 method: 'DELETE',
             });
-
             if (!response. ok) throw new Error('Löschen fehlgeschlagen');
-
             setOffers((prev) => prev.filter((offer) => offer.id !== id));
             setSuccess('Datensatz erfolgreich gelöscht');
         } catch (err: any) {
@@ -86,7 +81,6 @@ export default function OffersPage() {
     return (
         <div className="min-h-screen bg-bg p-6">
             <div className="max-w-full mx-auto">
-                {/* Header */}
                 <div className="flex items-center justify-between mb-6">
                     <div>
                         <h1 className="text-xl font-bold text-fg">Angebotsübersicht</h1>

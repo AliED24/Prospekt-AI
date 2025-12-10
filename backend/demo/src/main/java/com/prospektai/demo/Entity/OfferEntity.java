@@ -15,7 +15,6 @@ public class OfferEntity {
 
         @Id
         @GeneratedValue(strategy = GenerationType.IDENTITY)
-
         private Long id;
         private String storeName;
         private String productName;

@@ -13,6 +13,7 @@
     "@emotion/styled": "^11.14.1",
     "@mui/icons-material": "^7.3.6",
     "@mui/material": "^7.3.6",
+    "axios": "^1.13.2",
     "date-fns": "^4.1.0",
     "next": "16.0.7",
     "react": "19.2.0",

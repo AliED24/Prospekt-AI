@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useMemo, ChangeEvent } from 'react';
+import React, { useState, useMemo } from 'react';
+import api from '../../../lib/api';
 import {
     Paper,
     Button,
@@ -17,6 +18,12 @@ import {
     Skeleton,
     CircularProgress,
     InputAdornment,
+    Collapse,
+    List,
+    ListItem,
+    ListItemText,
+    Box,
+    Typography,
 } from '@mui/material';
 import { Delete, Search, Download, Description } from '@mui/icons-material';
 import { format } from 'date-fns';
@@ -32,7 +39,6 @@ interface OffersTableProps {
     onDelete: (id: number) => Promise<void>;
 }
 
-// Gemeinsame Cell Styles
 const cellSx = {
     backgroundColor: 'var(--color-bg-light)',
     color: 'var(--color-fg)',
@@ -47,8 +53,11 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
     const [searchQuery, setSearchQuery] = useState('');
     const [deletingId, setDeletingId] = useState<number | null>(null);
 
+    const [showPdfList, setShowPdfList] = useState(false);
+    const [pdfDeleting, setPdfDeleting] = useState<string | null>(null);
+
     const handleDelete = async (id: number) => {
-        if (! window.confirm('Möchten Sie diesen Datensatz wirklich löschen?')) return;
+        if (!window.confirm('Möchten Sie diesen Datensatz wirklich löschen?')) return;
         try {
             setDeletingId(id);
             await onDelete(id);
@@ -57,40 +66,71 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
         }
     };
 
+    const uniquePdfFiles = useMemo(() => {
+        const setFiles = new Set<string>();
+        data.forEach((d) => {
+            if (d.associatedPdfFile && d.associatedPdfFile.trim() !== '') {
+                setFiles.add(d.associatedPdfFile);
+            }
+        });
+        return Array.from(setFiles);
+    }, [data]);
+
+    const deletePdfFile = async (filename: string) => {
+        if (!window.confirm(`Alle Einträge mit "${filename}" wirklich löschen?`)) return;
+        try {
+            setPdfDeleting(filename);
+            const payload = { filename };
+            console.log('Deleting PDF, payload=', payload);
+
+            const response = await api.delete('/api/offers/file', { data: payload });
+
+            const body = response.data;
+            console.log('Delete response body:', body);
+            alert(`Löschen erfolgreich. Server-Antwort: ${JSON.stringify(body)}`);
+            window.location.reload();
+        } catch (err: any) {
+            console.error('Fehler beim Löschen der PDF-Datei:', err);
+            const serverText = err?.response?.data ? JSON.stringify(err.response.data) : err.message;
+            alert(`Fehler beim Löschen der PDF-Datei: ${serverText}`);
+        } finally {
+            setPdfDeleting(null);
+        }
+    };
+
     const handleExport = () => {
-        if (! data.length) return;
+        if (!data.length) return;
         const worksheet = XLSX.utils.json_to_sheet(data);
-        const workbook = XLSX. utils.book_new();
+        const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, 'Angebote');
         XLSX.writeFile(workbook, `angebote_${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
     };
 
     const handleSort = (property: keyof OfferDataTypes) => {
         const isAsc = orderBy === property && order === 'asc';
-        setOrder(isAsc ?  'desc' : 'asc');
+        setOrder(isAsc ? 'desc' : 'asc');
         setOrderBy(property);
     };
 
     const filteredData = useMemo(() => {
         const query = searchQuery.toLowerCase();
         return data.filter((offer) =>
-            offer.productName?. toLowerCase().includes(query) ||
+            offer.productName?.toLowerCase().includes(query) ||
             offer.storeName?.toLowerCase().includes(query) ||
-            offer.brand?. toLowerCase().includes(query)
+            offer.brand?.toLowerCase().includes(query)
         );
     }, [data, searchQuery]);
 
     const sortedData = useMemo(() => {
-        return [...filteredData]. sort(getComparator(order, orderBy));
+        return [...filteredData].sort(getComparator(order, orderBy));
     }, [filteredData, order, orderBy]);
 
     const paginatedData = useMemo(() => {
-        return sortedData. slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+        return sortedData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
     }, [sortedData, page, rowsPerPage]);
 
     return (
         <div>
-            {/* Toolbar */}
             <Paper
                 elevation={0}
                 className="mb-4 p-4 border border-fg/10"
@@ -115,32 +155,93 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
                                     color: 'var(--color-fg)',
                                     '& fieldset': { borderColor: 'rgba(237,237,237,0.1)' },
                                     '&:hover fieldset': { borderColor: 'rgba(237,237,237,0.3)' },
-                                    '&. Mui-focused fieldset': { borderColor: 'var(--color-accent)' },
+                                    '&.Mui-focused fieldset': { borderColor: 'var(--color-accent)' },
                                 },
                             },
                         }}
                     />
-                    <Button
-                        variant="outlined"
-                        size="small"
-                        startIcon={<Download />}
-                        onClick={handleExport}
-                        disabled={! data.length}
-                        sx={{
-                            borderColor: 'rgba(237,237,237,0.4)',
-                            color: 'var(--color-fg)',
-                            '&:hover': {
-                                borderColor: 'var(--color-fg)',
-                                backgroundColor: 'rgba(237,237,237,0.1)',
-                            },
-                        }}
-                    >
-                        Excel Export
-                    </Button>
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                        <Button
+                            variant="outlined"
+                            size="small"
+                            startIcon={<Download />}
+                            onClick={handleExport}
+                            disabled={!data.length}
+                            sx={{
+                                borderColor: 'rgba(237,237,237,0.4)',
+                                color: 'var(--color-fg)',
+                                '&:hover': {
+                                    borderColor: 'var(--color-fg)',
+                                    backgroundColor: 'rgba(237,237,237,0.1)',
+                                },
+                            }}
+                        >
+                            Excel Export
+                        </Button>
+
+                        <Button
+                            variant="outlined"
+                            size="small"
+                            onClick={() => setShowPdfList((s) => !s)}
+                            sx={{
+                                borderColor: 'rgba(237,237,237,0.4)',
+                                color: 'var(--color-fg)',
+                                '&:hover': {
+                                    borderColor: 'var(--color-fg)',
+                                    backgroundColor: 'rgba(237,237,237,0.05)',
+                                },
+                            }}
+                        >
+                            PDFs anzeigen ({uniquePdfFiles.length})
+                        </Button>
+                    </div>
                 </div>
+
+                <Collapse in={showPdfList} timeout="auto" unmountOnExit>
+                    <Box sx={{ mt: 2, borderTop: '1px solid rgba(237,237,237,0.06)', pt: 2 }}>
+                        {uniquePdfFiles.length === 0 ? (
+                            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+                                Keine hochgeladenen PDF-Dateien gefunden
+                            </Typography>
+                        ) : (
+                            <List dense>
+                                {uniquePdfFiles.map((f) => (
+                                    <ListItem key={f} divider secondaryAction={
+                                        <div>
+                                            <IconButton
+                                                edge="end"
+                                                aria-label={`delete-${f}`}
+                                                onClick={() => deletePdfFile(f)}
+                                                disabled={pdfDeleting !== null}
+                                                sx={{ color: 'var(--color-error)' }}
+                                            >
+                                                {pdfDeleting === f ? (
+                                                    <CircularProgress size={18} sx={{ color: 'var(--color-error)' }} />
+                                                ) : (
+                                                    <Delete fontSize="small" />
+                                                )}
+                                            </IconButton>
+                                        </div>
+                                    }>
+                                        <ListItemText sx={
+                                            {
+                                                color: 'var(--color-fg)',
+                                                '& .MuiListItemText-primary': {
+                                                    color: 'var(--color-fg)',
+                                                },
+                                                '& .MuiListItemText-secondary': {
+                                                    color: 'var(--color-fg)',
+                                                },
+                                            }
+                                        } primary={f} secondary={`Einträge: ${data.filter(d => d.associatedPdfFile === f).length}`} />
+                                    </ListItem>
+                                ))}
+                            </List>
+                        )}
+                    </Box>
+                </Collapse>
             </Paper>
 
-            {/* Table */}
             <TableContainer
                 component={Paper}
                 elevation={0}
@@ -153,17 +254,17 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
                             {headCells.map((headCell) => (
                                 <TableCell
                                     key={headCell.id}
-                                    align={headCell. numeric ? 'right' : 'left'}
+                                    align={headCell.numeric ? 'right' : 'left'}
                                     style={{ width: headCell.width }}
-                                    sx={{ ... cellSx, fontWeight: 600 }}
+                                    sx={{ ...cellSx, fontWeight: 600 }}
                                 >
                                     <TableSortLabel
                                         active={orderBy === headCell.id}
-                                        direction={orderBy === headCell. id ? order : 'asc'}
+                                        direction={orderBy === headCell.id ? order : 'asc'}
                                         onClick={() => handleSort(headCell.id)}
                                         sx={{
                                             color: 'var(--color-fg)',
-                                            '&. Mui-active': { color: 'var(--color-accent)' },
+                                            '&.Mui-active': { color: 'var(--color-accent)' },
                                             '& .MuiTableSortLabel-icon': { color: 'var(--color-accent) !important' },
                                         }}
                                     >
@@ -171,17 +272,17 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
                                     </TableSortLabel>
                                 </TableCell>
                             ))}
-                            <TableCell sx={{ ... cellSx, width: 60 }} />
+                            <TableCell sx={{ ...cellSx, width: 60 }} />
                         </TableRow>
                     </TableHead>
 
                     <TableBody>
                         {isLoading ? (
-                            Array. from({ length: 10 }). map((_, i) => (
+                            Array.from({ length: 10 }).map((_, i) => (
                                 <TableRow key={i}>
                                     {headCells.map((_, j) => (
                                         <TableCell key={j} sx={cellSx}>
-                                            <Skeleton variant="text" sx={{ bgcolor: 'rgba(237,237,237,0. 15)' }} />
+                                            <Skeleton variant="text" sx={{ bgcolor: 'rgba(237,237,237,0.15)' }} />
                                         </TableCell>
                                     ))}
                                     <TableCell sx={cellSx} />
@@ -192,26 +293,26 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
                                 <TableCell
                                     colSpan={headCells.length + 1}
                                     align="center"
-                                    sx={{ ... cellSx, py: 8 }}
+                                    sx={{ ...cellSx, py: 8 }}
                                 >
                                     <Description sx={{ fontSize: 48, mb: 2, opacity: 0.3, color: 'var(--color-fg)' }} />
                                     <p>Keine Angebote gefunden</p>
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            paginatedData. map((row) => (
+                            paginatedData.map((row) => (
                                 <TableRow
                                     key={row.id}
-                                    sx={{ '&:hover td': { backgroundColor: 'rgba(237,237,237,0. 05)' } }}
+                                    sx={{ '&:hover td': { backgroundColor: 'rgba(237,237,237,0.05)' } }}
                                 >
                                     <TableCell sx={cellSx}>
-                                        {row. productName || '-'}
+                                        {row.productName || '-'}
                                     </TableCell>
                                     <TableCell sx={cellSx}>
-                                        {row. storeName || '-'}
+                                        {row.storeName || '-'}
                                     </TableCell>
                                     <TableCell align="right" sx={cellSx}>
-                                        {formatPrice(row. originalPrice)}
+                                        {formatPrice(row.originalPrice)}
                                     </TableCell>
                                     <TableCell align="right" sx={cellSx}>
                                         <span style={{ color: 'var(--color-success)', fontWeight: 500 }}>
@@ -237,7 +338,7 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
                                             disabled={deletingId === row.id}
                                             sx={{ color: 'var(--color-error)' }}
                                         >
-                                            {deletingId === row. id ? (
+                                            {deletingId === row.id ? (
                                                 <CircularProgress size={16} sx={{ color: 'var(--color-error)' }} />
                                             ) : (
                                                 <Delete fontSize="small" />
@@ -251,7 +352,6 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
                 </Table>
             </TableContainer>
 
-            {/* Pagination */}
             <TablePagination
                 component="div"
                 count={filteredData.length}
@@ -259,7 +359,7 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
                 onPageChange={(_, newPage) => setPage(newPage)}
                 rowsPerPage={rowsPerPage}
                 onRowsPerPageChange={(e) => {
-                    setRowsPerPage(parseInt(e.target. value, 10));
+                    setRowsPerPage(parseInt(e.target.value, 10));
                     setPage(0);
                 }}
                 rowsPerPageOptions={[10, 15, 25, 50]}
@@ -268,10 +368,10 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
                 sx={{
                     backgroundColor: 'var(--color-bg-light)',
                     color: 'var(--color-fg)',
-                    borderTop: '1px solid rgba(237,237,237,0. 1)',
+                    borderTop: '1px solid rgba(237,237,237,0.1)',
                     '& .MuiTablePagination-selectIcon': { color: 'var(--color-fg)' },
-                    '& .MuiTablePagination-actions . MuiIconButton-root': { color: 'var(--color-fg)' },
-                    '& .MuiTablePagination-actions . Mui-disabled': { color: 'rgba(237,237,237,0. 3)' },
+                    '& .MuiTablePagination-actions .MuiIconButton-root': { color: 'var(--color-fg)' },
+                    '& .MuiTablePagination-actions .Mui-disabled': { color: 'rgba(237,237,237,0.3)' },
                 }}
             />
         </div>
