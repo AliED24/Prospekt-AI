@@ -192,7 +192,7 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
                                 },
                             }}
                         >
-                            PDFs anzeigen ({uniquePdfFiles.length})
+                            Uploads anzeigen ({uniquePdfFiles.length})
                         </Button>
                     </div>
                 </div>
@@ -228,6 +228,7 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
                                                 color: 'var(--color-fg)',
                                                 '& .MuiListItemText-primary': {
                                                     color: 'var(--color-fg)',
+                                                    fontWeight: 'bold',
                                                 },
                                                 '& .MuiListItemText-secondary': {
                                                     color: 'var(--color-fg)',
