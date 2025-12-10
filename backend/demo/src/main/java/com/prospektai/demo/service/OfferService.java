@@ -54,13 +54,11 @@ public class OfferService {
     }
 
     @Transactional
-    public void deleteOffersByFile(String filename) {
-        String decoded = URLDecoder.decode(filename, StandardCharsets.UTF_8);
-        String normalized = Normalizer.normalize(decoded, Normalizer.Form.NFC);
-        log.info("Versuche Angebote zu löschen für Datei='{}' (normalisiert='{}')", filename, normalized);
+    public void deleteOffersByFile(String filename){
+        log.info("Versuche Angebote zu löschen für Datei='{}'", filename);
         try {
-            offerDataRepository.deleteByAssociatedPdfFile(normalized);
-            log.info("Löschvorgang abgeschlossen für Datei='{}'", normalized);
+            offerDataRepository.deleteByAssociatedPdfFile(filename);
+            log.info("Löschvorgang abgeschlossen für Datei='{}'", filename);
         } catch (Exception e) {
             log.error("Fehler bei der Löschung der Angebote:", e);
         }

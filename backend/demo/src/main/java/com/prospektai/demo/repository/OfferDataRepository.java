@@ -14,5 +14,5 @@ public interface OfferDataRepository extends JpaRepository<OfferEntity, Long> {
 
     @Modifying
     @Query("delete from OfferEntity offer where offer.associatedPdfFile = :filename")
-    int deleteByAssociatedPdfFile(@Param("filename") @NotNull String filename);
+    void deleteByAssociatedPdfFile(@Param("filename") @NotNull String filename);
 }
