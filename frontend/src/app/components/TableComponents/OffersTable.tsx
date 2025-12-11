@@ -375,6 +375,9 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
                                     <TableCell sx={{ ...cellSx, width: 110 }}>
                                         <TruncatedText text={row.storeName || ''} maxLength={12} />
                                     </TableCell>
+                                    <TableCell sx={{ ...cellSx, width: 155 }}>
+                                        <TruncatedText text={row.productDescription || ''} maxLength={18} />
+                                    </TableCell>
                                     <TableCell align="right" sx={{ ...cellSx, width: 95 }}>
                                         {formatPrice(row.originalPrice)}
                                     </TableCell>

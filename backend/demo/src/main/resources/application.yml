@@ -54,6 +54,7 @@ spring:
         the storeName is not on top of a product, it is on the top of the page, just use the storeName from the first page.
         If the AppPrice is not shown, leave it empty.
         please detect the calenderWeek of the offerDateStart and offerDateEnd and return it as calenderWeek.
+        Add the productDescription, like weights,size amounts etc.
 
       user-prompt: >
         Please extract all offers from the file and return them in the specified format.

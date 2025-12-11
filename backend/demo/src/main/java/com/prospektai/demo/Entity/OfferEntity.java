@@ -19,6 +19,7 @@ public class OfferEntity {
         private String storeName;
         private String productName;
         private String brand;
+        private String productDescription;
         private String quantity;
         private String price;
         private String originalPrice;

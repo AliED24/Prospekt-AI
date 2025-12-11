@@ -56,19 +56,20 @@ public class OpenAiClient {
                                         "type", "array",
                                         "items", Map.of(
                                                 "type", "object",
-                                                "properties", Map.of(
-                                                        "storeName", Map.of("type", "string"),
-                                                        "productName", Map.of("type", "string"),
-                                                        "brand", Map.of("type", "string", "nullable", true),
-                                                        "quantity", Map.of("type", "string"),
-                                                        "price", Map.of("type", "number"),
-                                                        "originalPrice", Map.of("type", "string", "nullable", true),
-                                                        "appPrice", Map.of("type", "string", "nullable", true),
-                                                        "offerDateStart", Map.of("type", "string"),
-                                                        "offerDateEnd", Map.of("type", "string"),
-                                                        "calenderWeek", Map.of("type", "number")
-                                                ),
-                                                "required", List.of("storeName","productName","quantity","brand","originalPrice","price","appPrice","offerDateStart","offerDateEnd","calenderWeek"),
+                                "properties", Map.ofEntries(
+                                        Map.entry("storeName", Map.of("type", "string")),
+                                        Map.entry("productName", Map.of("type", "string")),
+                                        Map.entry("brand", Map.of("type", "string", "nullable", true)),
+                                        Map.entry("productDescription", Map.of("type", "string")),
+                                        Map.entry("quantity", Map.of("type", "string")),
+                                        Map.entry("price", Map.of("type", "number")),
+                                        Map.entry("originalPrice", Map.of("type", "string", "nullable", true)),
+                                        Map.entry("appPrice", Map.of("type", "string", "nullable", true)),
+                                        Map.entry("offerDateStart", Map.of("type", "string")),
+                                        Map.entry("offerDateEnd", Map.of("type", "string")),
+                                        Map.entry("calenderWeek", Map.of("type", "number"))
+                                ),
+                                                "required", List.of("storeName","productName","productDescription","quantity","brand","originalPrice","price","appPrice","offerDateStart","offerDateEnd","calenderWeek"),
                                                 "additionalProperties", false
                                         )
                                 )),
