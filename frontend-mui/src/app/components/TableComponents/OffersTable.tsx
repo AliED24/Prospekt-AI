@@ -139,7 +139,7 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
         return groups;
     }, [sortedData]);
 
-    // Erweiterte Zeilen für die Tabelle
+    // Einfache Dropdown-Logik für Tabelle
     const tableRows = useMemo(() => {
         const rows: OfferDataTypes[] = [];
 
@@ -149,10 +149,9 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
                 rows.push(items[0]);
             } else {
                 // Mehrere Produkte: erstes als Hauptzeile
-                const mainItem = { ...items[0] };
-                rows.push(mainItem);
+                rows.push(items[0]);
 
-                // Wenn expanded, weitere Zeilen hinzufügen
+                // Wenn erweitert, weitere Zeilen hinzufügen
                 if (expandedProducts.has(productName)) {
                     items.slice(1).forEach(item => {
                         rows.push(item);
@@ -374,16 +373,16 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
                                                 if (isMultiple && isFirstInGroup) {
                                                     return (
                                                         <>
-                                            <IconButton
-                                                size="small"
-                                                onClick={() => toggleProductExpansion(productName)}
-                                                sx={{
-                                                    p: 0,
-                                                    minWidth: 'auto',
-                                                    mr: 0.5,
-                                                    color: 'var(--color-accent)'
-                                                }}
-                                            >
+                                                            <IconButton
+                                                                size="small"
+                                                                onClick={() => toggleProductExpansion(productName)}
+                                                                sx={{
+                                                                    p: 0,
+                                                                    minWidth: 'auto',
+                                                                    mr: 0.5,
+                                                                    color: 'var(--color-accent)'
+                                                                }}
+                                                            >
                                                                 {isExpanded ? (
                                                                     <ExpandMore fontSize="small" />
                                                                 ) : (
@@ -410,6 +409,11 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
                                     <TableCell align="right" sx={cellSx}>
                                         <span style={{ color: 'var(--color-success)', fontWeight: 500 }}>
                                             {formatPrice(row.price)}
+                                        </span>
+                                    </TableCell>
+                                    <TableCell align="right" sx={cellSx}>
+                                        <span style={{ color: 'var(--color-success)', fontWeight: 500 }}>
+                                            {formatPrice(row.appPrice)}
                                         </span>
                                     </TableCell>
                                     <TableCell sx={cellSx}>
