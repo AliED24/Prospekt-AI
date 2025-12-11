@@ -51,7 +51,6 @@ const cellSx = {
     whiteSpace: 'nowrap',
 };
 
-// Hilfsfunktion für Text mit Tooltip
 const TruncatedText = ({ text, maxLength = 20 }: { text: string; maxLength?: number }) => {
     if (!text || text.length <= maxLength) {
         return <span>{text || '-'}</span>;
