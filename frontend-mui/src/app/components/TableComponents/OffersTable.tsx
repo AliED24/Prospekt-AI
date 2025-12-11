@@ -20,6 +20,10 @@ import {
     InputAdornment,
     Box,
     Tooltip,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem,
 } from '@mui/material';
 import { Delete, Search, Download, Description, ExpandMore, ChevronRight } from '@mui/icons-material';
 import { format } from 'date-fns';
@@ -69,6 +73,7 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
     const [rowsPerPage, setRowsPerPage] = useState(15);
     const [searchQuery, setSearchQuery] = useState('');
     const [deletingId, setDeletingId] = useState<number | null>(null);
+    const [selectedKW, setSelectedKW] = useState<number | ''>('');
 
     const [expandedProducts, setExpandedProducts] = useState<Set<string>>(new Set());
 
@@ -96,14 +101,29 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
         setOrderBy(property);
     };
 
+    // Eindeutige KW-Werte extrahieren
+    const availableKWs = useMemo(() => {
+        const kwSet = new Set<number>();
+        data.forEach((offer) => {
+            if (offer.calenderWeek && offer.calenderWeek > 0) {
+                kwSet.add(offer.calenderWeek);
+            }
+        });
+        return Array.from(kwSet).sort((a, b) => a - b);
+    }, [data]);
+
     const filteredData = useMemo(() => {
         const query = searchQuery.toLowerCase();
-        return data.filter((offer) =>
-            offer.productName?.toLowerCase().includes(query) ||
-            offer.storeName?.toLowerCase().includes(query) ||
-            offer.brand?.toLowerCase().includes(query)
-        );
-    }, [data, searchQuery]);
+        return data.filter((offer) => {
+            const matchesSearch = offer.productName?.toLowerCase().includes(query) ||
+                offer.storeName?.toLowerCase().includes(query) ||
+                offer.brand?.toLowerCase().includes(query);
+
+            const matchesKW = selectedKW === '' || offer.calenderWeek === selectedKW;
+
+            return matchesSearch && matchesKW;
+        });
+    }, [data, searchQuery, selectedKW]);
 
     const sortedData = useMemo(() => {
         return [...filteredData].sort(getComparator(order, orderBy));
@@ -160,29 +180,65 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
                 sx={{ backgroundColor: 'var(--color-bg-light)' }}
             >
                 <div className="flex items-center justify-between gap-4">
-                    <TextField
-                        size="small"
-                        placeholder="Suchen..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-[300px]"
-                        slotProps={{
-                            input: {
-                                startAdornment: (
-                                    <InputAdornment position="start">
-                                        <Search sx={{ color: 'var(--color-fg)', opacity: 0.4 }} />
-                                    </InputAdornment>
-                                ),
-                                sx: {
+                    <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                        <TextField
+                            size="small"
+                            placeholder="Suchen..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-[300px]"
+                            slotProps={{
+                                input: {
+                                    startAdornment: (
+                                        <InputAdornment position="start">
+                                            <Search sx={{ color: 'var(--color-fg)', opacity: 0.4 }} />
+                                        </InputAdornment>
+                                    ),
+                                    sx: {
+                                        backgroundColor: 'var(--color-bg)',
+                                        color: 'var(--color-fg)',
+                                        '& fieldset': { borderColor: 'rgba(237,237,237,0.1)' },
+                                        '&:hover fieldset': { borderColor: 'rgba(237,237,237,0.3)' },
+                                        '&.Mui-focused fieldset': { borderColor: 'var(--color-accent)' },
+                                    },
+                                },
+                            }}
+                        />
+
+                        <FormControl size="small" sx={{ minWidth: 120 }}>
+                            <InputLabel
+                                sx={{
+                                    color: 'var(--color-fg)',
+                                    '&.Mui-focused': { color: 'var(--color-accent)' }
+                                }}
+                            >
+                                KW auswählen
+                            </InputLabel>
+                            <Select
+                                value={selectedKW}
+                                label="KW auswählen"
+                                onChange={(e) => setSelectedKW(e.target.value as number | '')}
+                                sx={{
                                     backgroundColor: 'var(--color-bg)',
                                     color: 'var(--color-fg)',
                                     '& fieldset': { borderColor: 'rgba(237,237,237,0.1)' },
                                     '&:hover fieldset': { borderColor: 'rgba(237,237,237,0.3)' },
                                     '&.Mui-focused fieldset': { borderColor: 'var(--color-accent)' },
-                                },
-                            },
-                        }}
-                    />
+                                    '& .MuiSelect-icon': { color: 'var(--color-fg)' },
+                                }}
+                            >
+                                <MenuItem value="">
+                                    <em>Alle KW</em>
+                                </MenuItem>
+                                {availableKWs.map((kw) => (
+                                    <MenuItem key={kw} value={kw}>
+                                        KW {kw}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                    </div>
+
                     <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                         <Button
                             variant="outlined"
