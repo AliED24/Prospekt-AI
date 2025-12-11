@@ -25,7 +25,7 @@ import {
     Box,
     Typography,
 } from '@mui/material';
-import { Delete, Search, Download, Description } from '@mui/icons-material';
+import { Delete, Search, Download, Description, ExpandMore, ChevronRight } from '@mui/icons-material';
 import { format } from 'date-fns';
 import * as XLSX from 'xlsx';
 
@@ -55,6 +55,7 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
 
     const [showPdfList, setShowPdfList] = useState(false);
     const [pdfDeleting, setPdfDeleting] = useState<string | null>(null);
+    const [expandedProducts, setExpandedProducts] = useState<Set<string>>(new Set());
 
     const handleDelete = async (id: number) => {
         if (!window.confirm('Möchten Sie diesen Datensatz wirklich löschen?')) return;
@@ -125,9 +126,57 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
         return [...filteredData].sort(getComparator(order, orderBy));
     }, [filteredData, order, orderBy]);
 
+    // Gruppierung nach Produktnamen
+    const groupedData = useMemo(() => {
+        const groups: Record<string, OfferDataTypes[]> = {};
+        sortedData.forEach((item) => {
+            const key = item.productName || 'Unbenannt';
+            if (!groups[key]) {
+                groups[key] = [];
+            }
+            groups[key].push(item);
+        });
+        return groups;
+    }, [sortedData]);
+
+    // Erweiterte Zeilen für die Tabelle
+    const tableRows = useMemo(() => {
+        const rows: OfferDataTypes[] = [];
+
+        Object.entries(groupedData).forEach(([productName, items]) => {
+            if (items.length === 1) {
+                // Einzelprodukt: normal hinzufügen
+                rows.push(items[0]);
+            } else {
+                // Mehrere Produkte: erstes als Hauptzeile
+                const mainItem = { ...items[0] };
+                rows.push(mainItem);
+
+                // Wenn expanded, weitere Zeilen hinzufügen
+                if (expandedProducts.has(productName)) {
+                    items.slice(1).forEach(item => {
+                        rows.push(item);
+                    });
+                }
+            }
+        });
+
+        return rows;
+    }, [groupedData, expandedProducts]);
+
     const paginatedData = useMemo(() => {
-        return sortedData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
-    }, [sortedData, page, rowsPerPage]);
+        return tableRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+    }, [tableRows, page, rowsPerPage]);
+
+    const toggleProductExpansion = (productName: string) => {
+        const newExpanded = new Set(expandedProducts);
+        if (newExpanded.has(productName)) {
+            newExpanded.delete(productName);
+        } else {
+            newExpanded.add(productName);
+        }
+        setExpandedProducts(newExpanded);
+    };
 
     return (
         <div>
@@ -247,7 +296,14 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
                 component={Paper}
                 elevation={0}
                 className="max-h-[calc(100vh-300px)] border border-fg/10"
-                sx={{ backgroundColor: 'var(--color-bg-light)' }}
+                sx={{
+                    backgroundColor: 'var(--color-bg-light)',
+                    '&::-webkit-scrollbar': {
+                        display: 'none'
+                    },
+                    msOverflowStyle: 'none',
+                    scrollbarWidth: 'none'
+                }}
             >
                 <Table stickyHeader size="small">
                     <TableHead>
@@ -307,7 +363,43 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
                                     sx={{ '&:hover td': { backgroundColor: 'rgba(237,237,237,0.05)' } }}
                                 >
                                     <TableCell sx={cellSx}>
-                                        {row.productName || '-'}
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                            {(() => {
+                                                const productName = row.productName || 'Unbenannt';
+                                                const productGroup = groupedData[productName];
+                                                const isMultiple = productGroup && productGroup.length > 1;
+                                                const isFirstInGroup = isMultiple && productGroup[0].id === row.id;
+                                                const isExpanded = expandedProducts.has(productName);
+                                                
+                                                if (isMultiple && isFirstInGroup) {
+                                                    return (
+                                                        <>
+                                            <IconButton
+                                                size="small"
+                                                onClick={() => toggleProductExpansion(productName)}
+                                                sx={{
+                                                    p: 0,
+                                                    minWidth: 'auto',
+                                                    mr: 0.5,
+                                                    color: 'var(--color-accent)'
+                                                }}
+                                            >
+                                                                {isExpanded ? (
+                                                                    <ExpandMore fontSize="small" />
+                                                                ) : (
+                                                                    <ChevronRight fontSize="small" />
+                                                                )}
+                                                            </IconButton>
+                                                            <span>
+                                                                {productName} ({productGroup.length})
+                                                            </span>
+                                                        </>
+                                                    );
+                                                } else {
+                                                    return <span>{row.productName || '-'}</span>;
+                                                }
+                                            })()}
+                                        </Box>
                                     </TableCell>
                                     <TableCell sx={cellSx}>
                                         {row.storeName || '-'}
@@ -355,7 +447,7 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
 
             <TablePagination
                 component="div"
-                count={filteredData.length}
+                count={tableRows.length}
                 page={page}
                 onPageChange={(_, newPage) => setPage(newPage)}
                 rowsPerPage={rowsPerPage}

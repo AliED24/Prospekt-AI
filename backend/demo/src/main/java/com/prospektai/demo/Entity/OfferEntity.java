@@ -22,6 +22,7 @@ public class OfferEntity {
         private String quantity;
         private String price;
         private String originalPrice;
+        private String appPrice;
         private String associatedPdfFile;
 
         @Column(columnDefinition = "DATE")
