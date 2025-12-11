@@ -24,13 +24,18 @@ public class OfferService {
     private final OfferDataRepository offerDataRepository;
     private final PdfProcessingService pdfProcessingService;
 
-    public void uploadFile(MultipartFile file, int pagesPerChunk) {
-        log.info("Upload-Endpoint aufgerufen mit Datei={}, Größe={} bytes", file.getOriginalFilename(), file.getSize());
+    public void uploadFile(List<MultipartFile> files, int pagesPerChunk) {
+        log.info("Upload-Endpoint aufgerufen mit {} Dateien", files.size());
+
+        for (MultipartFile file : files) {
+            log.info("Verarbeite Datei: {}, Größe: {} bytes", file.getOriginalFilename(), file.getSize());
+        }
+
         try {
-            pdfProcessingService.processPdf(file, pagesPerChunk);
-            log.info("processPdf erfolgreich durchgelaufen für Datei={}", file.getOriginalFilename());
+            pdfProcessingService.processPdf(files, pagesPerChunk);
+            log.info("processPdf erfolgreich durchgelaufen für {} Dateien", files.size());
         } catch (Exception e) {
-            log.error("Fehler bei der Verarbeitung der PDF:", e);
+            log.error("Fehler bei der Verarbeitung der PDFs:", e);
         }
     }
 

@@ -29,7 +29,14 @@ public class PdfProcessingService {
     private final OfferSaver offerSaver;
 
     @Transactional
-    public void processPdf(MultipartFile multipartFile, int pagesPerChunk) throws Exception {
+    public void processPdf(List<MultipartFile> multipartFiles, int pagesPerChunk) throws Exception {
+        for (MultipartFile multipartFile : multipartFiles) {
+            logger.info("Verarbeite PDF-Datei: {}", multipartFile.getOriginalFilename());
+            processSinglePdf(multipartFile, pagesPerChunk);
+        }
+    }
+
+    private void processSinglePdf(MultipartFile multipartFile, int pagesPerChunk) throws Exception {
         Path tempFile = Files.createTempFile("upload-", "-" + multipartFile.getOriginalFilename());
         multipartFile.transferTo(tempFile.toFile());
 
@@ -69,7 +76,7 @@ public class PdfProcessingService {
                 }
             }
         } catch (Exception e) {
-            logger.error("Fehler bei der Verarbeitung der PDF-Datei: {}", e.getMessage(), e);
+            logger.error("Fehler bei der Verarbeitung der PDF-Datei {}: {}", originalFilename, e.getMessage(), e);
             throw e;
         } finally {
             try {

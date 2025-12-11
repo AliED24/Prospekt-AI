@@ -1,17 +1,12 @@
 package com.prospektai.demo.controller;
 import com.prospektai.demo.Entity.OfferEntity;
-import com.prospektai.demo.repository.OfferDataRepository;
 import com.prospektai.demo.service.OfferService;
-import com.prospektai.demo.service.PdfProcessingService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
@@ -26,9 +21,9 @@ public class OfferController {
 
     @PostMapping("/upload")
     public ResponseEntity<String> uploadFile(
-            @RequestParam("file") MultipartFile file,
+            @RequestParam("files") List<MultipartFile> files,
             @RequestParam(value = "pagesPerChunk", defaultValue = "5") int pagesPerChunk) {
-        offerService.uploadFile(file, pagesPerChunk);
+        offerService.uploadFile(files, pagesPerChunk);
         return ResponseEntity.ok("Datei erfolgreich hochgeladen");
     }
 

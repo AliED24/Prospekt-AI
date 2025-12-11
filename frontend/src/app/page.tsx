@@ -40,28 +40,43 @@ export default function OffersPage() {
     };
 
     const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (! file || file.type !== 'application/pdf') {
-            setError('Bitte wählen Sie eine gültige PDF-Datei aus.');
+        const files = event.target.files;
+        if (!files || files.length === 0) {
+            setError('Bitte wählen Sie mindestens eine PDF-Datei aus.');
+            return;
+        }
+
+        // Validate all files are PDFs
+        const invalidFiles = Array.from(files).filter(file => file.type !== 'application/pdf');
+        if (invalidFiles.length > 0) {
+            setError('Bitte wählen Sie nur gültige PDF-Dateien aus.');
             return;
         }
 
         try {
             setIsUploading(true);
             const formData = new FormData();
-            formData.append('file', file);
+
+            // Append all files to FormData with 'files' key (matching backend)
+            Array.from(files).forEach((file) => {
+                formData.append('files', file);
+            });
+
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/upload`, {
                 method: 'POST',
                 body: formData,
             });
+
             if (!response.ok) throw new Error('Upload fehlgeschlagen');
-            setSuccess('PDF erfolgreich verarbeitet');
+
+            const fileCount = files.length;
+            setSuccess(`${fileCount} PDF${fileCount > 1 ? 's' : ''} erfolgreich verarbeitet`);
             await fetchOffers();
         } catch (err: any) {
             setError(err.message);
         } finally {
             setIsUploading(false);
-            if (fileInputRef. current) fileInputRef.current. value = '';
+            if (fileInputRef.current) fileInputRef.current.value = '';
         }
     };
 
@@ -94,6 +109,7 @@ export default function OffersPage() {
                             ref={fileInputRef}
                             onChange={handleFileChange}
                             accept=".pdf"
+                            multiple
                             className="hidden"
                         />
                         <Button
@@ -104,7 +120,7 @@ export default function OffersPage() {
                             disabled={isUploading}
                             className="!border-accent !text-accent hover:!bg-accent/10"
                         >
-                            {isUploading ?  'Verarbeite...' : 'PDF hochladen'}
+                            {isUploading ? 'Verarbeite...' : 'PDF(s) hochladen'}
                         </Button>
                     </div>
                 </div>
