@@ -13,6 +13,7 @@ import {
 import {
     Home,
     Inbox,
+    CloudUpload,
 } from '@mui/icons-material';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -23,6 +24,12 @@ const SidebarItems = [
         url: "/",
         icon: Home,
         description: "Übersicht & Upload"
+    },
+    {
+        title: "Uploads",
+        url: "/uploadView",
+        icon: CloudUpload,
+        description: "Uploads verwalten"
     }
 ];
 

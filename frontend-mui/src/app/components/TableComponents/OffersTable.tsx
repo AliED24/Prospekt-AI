@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import api from '../../../lib/api';
+
 import {
     Paper,
     Button,
@@ -18,12 +18,8 @@ import {
     Skeleton,
     CircularProgress,
     InputAdornment,
-    Collapse,
-    List,
-    ListItem,
-    ListItemText,
     Box,
-    Typography,
+    Tooltip,
 } from '@mui/material';
 import { Delete, Search, Download, Description, ExpandMore, ChevronRight } from '@mui/icons-material';
 import { format } from 'date-fns';
@@ -43,6 +39,27 @@ const cellSx = {
     backgroundColor: 'var(--color-bg-light)',
     color: 'var(--color-fg)',
     borderBottom: '1px solid rgba(237,237,237,0.1)',
+    padding: '8px 12px',
+    height: '48px',
+    maxWidth: 0,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+};
+
+// Hilfsfunktion für Text mit Tooltip
+const TruncatedText = ({ text, maxLength = 20 }: { text: string; maxLength?: number }) => {
+    if (!text || text.length <= maxLength) {
+        return <span>{text || '-'}</span>;
+    }
+
+    return (
+        <Tooltip title={text} arrow placement="top">
+            <span style={{ cursor: 'help' }}>
+                {text.substring(0, maxLength)}...
+            </span>
+        </Tooltip>
+    );
 };
 
 export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
@@ -53,8 +70,6 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
     const [searchQuery, setSearchQuery] = useState('');
     const [deletingId, setDeletingId] = useState<number | null>(null);
 
-    const [showPdfList, setShowPdfList] = useState(false);
-    const [pdfDeleting, setPdfDeleting] = useState<string | null>(null);
     const [expandedProducts, setExpandedProducts] = useState<Set<string>>(new Set());
 
     const handleDelete = async (id: number) => {
@@ -64,38 +79,6 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
             await onDelete(id);
         } finally {
             setDeletingId(null);
-        }
-    };
-
-    const uniquePdfFiles = useMemo(() => {
-        const setFiles = new Set<string>();
-        data.forEach((d) => {
-            if (d.associatedPdfFile && d.associatedPdfFile.trim() !== '') {
-                setFiles.add(d.associatedPdfFile);
-            }
-        });
-        return Array.from(setFiles);
-    }, [data]);
-
-    const deletePdfFile = async (filename: string) => {
-        if (!window.confirm(`Alle Einträge mit "${filename}" wirklich löschen?`)) return;
-        try {
-            setPdfDeleting(filename);
-            const payload = { filename };
-            console.log('Deleting PDF, payload=', payload);
-
-            const response = await api.delete('/api/offers/file', { data: payload });
-
-            const body = response.data;
-            console.log('Delete response body:', body);
-            alert(`Löschen erfolgreich. Server-Antwort: ${JSON.stringify(body)}`);
-            window.location.reload();
-        } catch (err: any) {
-            console.error('Fehler beim Löschen der PDF-Datei:', err);
-            const serverText = err?.response?.data ? JSON.stringify(err.response.data) : err.message;
-            alert(`Fehler beim Löschen der PDF-Datei: ${serverText}`);
-        } finally {
-            setPdfDeleting(null);
         }
     };
 
@@ -126,7 +109,6 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
         return [...filteredData].sort(getComparator(order, orderBy));
     }, [filteredData, order, orderBy]);
 
-    // Gruppierung nach Produktnamen
     const groupedData = useMemo(() => {
         const groups: Record<string, OfferDataTypes[]> = {};
         sortedData.forEach((item) => {
@@ -139,19 +121,13 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
         return groups;
     }, [sortedData]);
 
-    // Einfache Dropdown-Logik für Tabelle
     const tableRows = useMemo(() => {
         const rows: OfferDataTypes[] = [];
-
         Object.entries(groupedData).forEach(([productName, items]) => {
             if (items.length === 1) {
-                // Einzelprodukt: normal hinzufügen
                 rows.push(items[0]);
             } else {
-                // Mehrere Produkte: erstes als Hauptzeile
                 rows.push(items[0]);
-
-                // Wenn erweitert, weitere Zeilen hinzufügen
                 if (expandedProducts.has(productName)) {
                     items.slice(1).forEach(item => {
                         rows.push(item);
@@ -159,7 +135,6 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
                 }
             }
         });
-
         return rows;
     }, [groupedData, expandedProducts]);
 
@@ -227,68 +202,8 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
                             Excel Export
                         </Button>
 
-                        <Button
-                            variant="outlined"
-                            size="small"
-                            onClick={() => setShowPdfList((s) => !s)}
-                            sx={{
-                                borderColor: 'rgba(237,237,237,0.4)',
-                                color: 'var(--color-fg)',
-                                '&:hover': {
-                                    borderColor: 'var(--color-fg)',
-                                    backgroundColor: 'rgba(237,237,237,0.05)',
-                                },
-                            }}
-                        >
-                            Uploads anzeigen ({uniquePdfFiles.length})
-                        </Button>
                     </div>
                 </div>
-
-                <Collapse in={showPdfList} timeout="auto" unmountOnExit>
-                    <Box sx={{ mt: 2, borderTop: '1px solid rgba(237,237,237,0.06)', pt: 2 }}>
-                        {uniquePdfFiles.length === 0 ? (
-                            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)' }}>
-                                Keine hochgeladenen PDF-Dateien gefunden
-                            </Typography>
-                        ) : (
-                            <List dense>
-                                {uniquePdfFiles.map((f) => (
-                                    <ListItem key={f} divider secondaryAction={
-                                        <div>
-                                            <IconButton
-                                                edge="end"
-                                                aria-label={`delete-${f}`}
-                                                onClick={() => deletePdfFile(f)}
-                                                disabled={pdfDeleting !== null}
-                                                sx={{ color: 'var(--color-error)' }}
-                                            >
-                                                {pdfDeleting === f ? (
-                                                    <CircularProgress size={18} sx={{ color: 'var(--color-error)' }} />
-                                                ) : (
-                                                    <Delete fontSize="small" />
-                                                )}
-                                            </IconButton>
-                                        </div>
-                                    }>
-                                        <ListItemText sx={
-                                            {
-                                                color: 'var(--color-fg)',
-                                                '& .MuiListItemText-primary': {
-                                                    color: 'var(--color-fg)',
-                                                    fontWeight: 'bold',
-                                                },
-                                                '& .MuiListItemText-secondary': {
-                                                    color: 'var(--color-fg)',
-                                                },
-                                            }
-                                        } primary={f} secondary={`Einträge: ${data.filter(d => d.associatedPdfFile === f).length}`} />
-                                    </ListItem>
-                                ))}
-                            </List>
-                        )}
-                    </Box>
-                </Collapse>
             </Paper>
 
             <TableContainer
@@ -311,7 +226,7 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
                                 <TableCell
                                     key={headCell.id}
                                     align={headCell.numeric ? 'right' : 'left'}
-                                    style={{ width: headCell.width }}
+                                    style={{ width: headCell.width, minWidth: headCell.width, maxWidth: headCell.width }}
                                     sx={{ ...cellSx, fontWeight: 600 }}
                                 >
                                     <TableSortLabel
@@ -328,7 +243,7 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
                                     </TableSortLabel>
                                 </TableCell>
                             ))}
-                            <TableCell sx={{ ...cellSx, width: 60 }} />
+                            <TableCell sx={{ ...cellSx, width: 60, minWidth: 60, maxWidth: 60 }} />
                         </TableRow>
                     </TableHead>
 
@@ -361,8 +276,8 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
                                     key={row.id}
                                     sx={{ '&:hover td': { backgroundColor: 'rgba(237,237,237,0.05)' } }}
                                 >
-                                    <TableCell sx={cellSx}>
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                    <TableCell sx={{ ...cellSx, width: 180 }}>
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: 0 }}>
                                             {(() => {
                                                 const productName = row.productName || 'Unbenannt';
                                                 const productGroup = groupedData[productName];
@@ -371,6 +286,7 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
                                                 const isExpanded = expandedProducts.has(productName);
                                                 
                                                 if (isMultiple && isFirstInGroup) {
+                                                    const displayText = `${productName} (${productGroup.length})`;
                                                     return (
                                                         <>
                                                             <IconButton
@@ -380,7 +296,8 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
                                                                     p: 0,
                                                                     minWidth: 'auto',
                                                                     mr: 0.5,
-                                                                    color: 'var(--color-accent)'
+                                                                    color: 'var(--color-accent)',
+                                                                    flexShrink: 0,
                                                                 }}
                                                             >
                                                                 {isExpanded ? (
@@ -389,46 +306,49 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
                                                                     <ChevronRight fontSize="small" />
                                                                 )}
                                                             </IconButton>
-                                                            <span>
-                                                                {productName} ({productGroup.length})
-                                                            </span>
+                                                            <Box sx={{ minWidth: 0, overflow: 'hidden' }}>
+                                                                <TruncatedText text={displayText} maxLength={18} />
+                                                            </Box>
                                                         </>
                                                     );
                                                 } else {
-                                                    return <span>{row.productName || '-'}</span>;
+                                                    return <TruncatedText text={row.productName || ''} maxLength={22} />;
                                                 }
                                             })()}
                                         </Box>
                                     </TableCell>
-                                    <TableCell sx={cellSx}>
-                                        {row.storeName || '-'}
+                                    <TableCell sx={{ ...cellSx, width: 110 }}>
+                                        <TruncatedText text={row.storeName || ''} maxLength={12} />
                                     </TableCell>
-                                    <TableCell align="right" sx={cellSx}>
+                                    <TableCell align="right" sx={{ ...cellSx, width: 95 }}>
                                         {formatPrice(row.originalPrice)}
                                     </TableCell>
-                                    <TableCell align="right" sx={cellSx}>
+                                    <TableCell align="right" sx={{ ...cellSx, width: 95 }}>
                                         <span style={{ color: 'var(--color-success)', fontWeight: 500 }}>
                                             {formatPrice(row.price)}
                                         </span>
                                     </TableCell>
-                                    <TableCell align="right" sx={cellSx}>
+                                    <TableCell align="right" sx={{ ...cellSx, width: 85 }}>
                                         <span style={{ color: 'var(--color-success)', fontWeight: 500 }}>
                                             {formatPrice(row.appPrice)}
                                         </span>
                                     </TableCell>
-                                    <TableCell sx={cellSx}>
+                                    <TableCell sx={{ ...cellSx, width: 90 }}>
                                         {row.offerDateStart || '-'}
                                     </TableCell>
-                                    <TableCell sx={cellSx}>
+                                    <TableCell sx={{ ...cellSx, width: 90 }}>
                                         {row.offerDateEnd || '-'}
                                     </TableCell>
-                                    <TableCell sx={cellSx}>
-                                        {row.brand || '-'}
+                                    <TableCell align="right" sx={{ ...cellSx, width: 60 }}>
+                                        {row.calenderWeek || '-'}
                                     </TableCell>
-                                    <TableCell sx={cellSx}>
-                                        {row.associatedPdfFile || '-'}
+                                    <TableCell sx={{ ...cellSx, width: 100 }}>
+                                        <TruncatedText text={row.brand || ''} maxLength={10} />
                                     </TableCell>
-                                    <TableCell align="center" sx={cellSx}>
+                                    <TableCell sx={{ ...cellSx, width: 140 }}>
+                                        <TruncatedText text={row.associatedPdfFile || ''} maxLength={15} />
+                                    </TableCell>
+                                    <TableCell align="center" sx={{ ...cellSx, width: 60 }}>
                                         <IconButton
                                             size="small"
                                             onClick={() => handleDelete(row.id)}

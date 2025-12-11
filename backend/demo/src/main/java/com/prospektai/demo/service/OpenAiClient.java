@@ -65,9 +65,10 @@ public class OpenAiClient {
                                                         "originalPrice", Map.of("type", "string", "nullable", true),
                                                         "appPrice", Map.of("type", "string", "nullable", true),
                                                         "offerDateStart", Map.of("type", "string"),
-                                                        "offerDateEnd", Map.of("type", "string")
+                                                        "offerDateEnd", Map.of("type", "string"),
+                                                        "calenderWeek", Map.of("type", "number")
                                                 ),
-                                                "required", List.of("storeName","productName","quantity","brand","originalPrice","price","appPrice","offerDateStart","offerDateEnd"),
+                                                "required", List.of("storeName","productName","quantity","brand","originalPrice","price","appPrice","offerDateStart","offerDateEnd","calenderWeek"),
                                                 "additionalProperties", false
                                         )
                                 )),

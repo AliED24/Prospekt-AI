@@ -24,6 +24,7 @@ public class OfferEntity {
         private String originalPrice;
         private String appPrice;
         private String associatedPdfFile;
+        private Byte calenderWeek;
 
         @Column(columnDefinition = "DATE")
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd.MM.yyyy")

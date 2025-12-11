@@ -20,6 +20,7 @@ export default function OffersPage() {
             setIsLoading(true);
             const response = await axios.get<OfferDataTypes[]>(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/offers`);
             setOffers(response.data);
+            console.log(response.data);
         } catch (err: any) {
             setError(
                 err?.response?.data?.message ?? err?.message ?? 'Fehler beim Laden der Angebote'

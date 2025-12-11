@@ -4,11 +4,14 @@ export interface OfferDataTypes {
     productDescription?: string;
     originalPrice?: number | string;
     price?: number | string;
+    appPrice?: number | string;
     offerDateStart?: string;
     offerDateEnd?: string;
     storeName?: string;
     associatedPdfFile?: string;
     brand?: string;
+    calenderWeek?: number;
+    quantity?: string;
     [key: string]: any;
 }
 
