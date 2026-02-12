@@ -110,7 +110,7 @@ npm run dev
 
 - Das System analysiert automatisch alle hochgeladenen PDFs
 - KI-Modelle extrahieren Produktinformationen, Preise, Marken und Angebotszeiträume
-- Fortschritt wird in Echtzeit für jede Datei angezeigt
+
 
 ### 3. Daten analysieren und filtern
 
