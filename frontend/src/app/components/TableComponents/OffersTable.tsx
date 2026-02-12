@@ -43,11 +43,12 @@ const cellSx = {
     backgroundColor: 'var(--color-bg-light)',
     color: 'var(--color-fg)',
     borderBottom: '1px solid rgba(237,237,237,0.1)',
-    padding: '8px 12px',
-    height: '48px',
+    padding: '12px 12px',
+    height: '64px',
+    minHeight: '64px',
+    verticalAlign: 'middle',
     maxWidth: 0,
     overflow: 'hidden',
-    textOverflow: 'ellipsis',
     whiteSpace: 'nowrap',
 };
 
@@ -65,6 +66,13 @@ const TruncatedText = ({ text, maxLength = 20 }: { text: string; maxLength?: num
     );
 };
 
+interface TableRowData {
+    type: 'header' | 'data';
+    data: OfferDataTypes | null;
+    groupKey?: string;
+    count?: number;
+}
+
 export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
     const [order, setOrder] = useState<Order>('asc');
     const [orderBy, setOrderBy] = useState<keyof OfferDataTypes>('productName');
@@ -73,6 +81,7 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
     const [searchQuery, setSearchQuery] = useState('');
     const [deletingId, setDeletingId] = useState<number | null>(null);
     const [selectedKW, setSelectedKW] = useState<number | ''>('');
+    const [selectedStore, setSelectedStore] = useState<string>('');
 
     const [expandedProducts, setExpandedProducts] = useState<Set<string>>(new Set());
 
@@ -100,6 +109,7 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
         setOrderBy(property);
     };
 
+    // Verfügbare KWs ermitteln
     const availableKWs = useMemo(() => {
         const kwSet = new Set<number>();
         data.forEach((offer) => {
@@ -110,6 +120,17 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
         return Array.from(kwSet).sort((a, b) => a - b);
     }, [data]);
 
+    // Verfügbare Wettbewerber/Stores ermitteln
+    const availableStores = useMemo(() => {
+        const storeSet = new Set<string>();
+        data.forEach((offer) => {
+            if (offer.storeName) {
+                storeSet.add(offer.storeName);
+            }
+        });
+        return Array.from(storeSet).sort();
+    }, [data]);
+
     const filteredData = useMemo(() => {
         const query = searchQuery.toLowerCase();
         return data.filter((offer) => {
@@ -118,10 +139,11 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
                 offer.brand?.toLowerCase().includes(query);
 
             const matchesKW = selectedKW === '' || offer.calenderWeek === selectedKW;
+            const matchesStore = selectedStore === '' || offer.storeName === selectedStore;
 
-            return matchesSearch && matchesKW;
+            return matchesSearch && matchesKW && matchesStore;
         });
-    }, [data, searchQuery, selectedKW]);
+    }, [data, searchQuery, selectedKW, selectedStore]);
 
     const sortedData = useMemo(() => {
         return [...filteredData].sort(getComparator(order, orderBy));
@@ -130,7 +152,7 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
     const groupedData = useMemo(() => {
         const groups: Record<string, OfferDataTypes[]> = {};
         sortedData.forEach((item) => {
-            const key = item.productName || 'Unbenannt';
+            const key = `${item.productName || 'Unbenannt'}__${item.quantity || ''}`;
             if (!groups[key]) {
                 groups[key] = [];
             }
@@ -140,15 +162,27 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
     }, [sortedData]);
 
     const tableRows = useMemo(() => {
-        const rows: OfferDataTypes[] = [];
-        Object.entries(groupedData).forEach(([productName, items]) => {
+        const rows: TableRowData[] = [];
+        Object.entries(groupedData).forEach(([groupKey, items]) => {
             if (items.length === 1) {
-                rows.push(items[0]);
+                rows.push({
+                    type: 'data',
+                    data: items[0],
+                });
             } else {
-                rows.push(items[0]);
-                if (expandedProducts.has(productName)) {
-                    items.slice(1).forEach(item => {
-                        rows.push(item);
+                rows.push({
+                    type: 'header',
+                    data: null,
+                    groupKey,
+                    count: items.length,
+                });
+
+                if (expandedProducts.has(groupKey)) {
+                    items.forEach(item => {
+                        rows.push({
+                            type: 'data',
+                            data: item,
+                        });
                     });
                 }
             }
@@ -160,54 +194,29 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
         return tableRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
     }, [tableRows, page, rowsPerPage]);
 
-    const toggleProductExpansion = (productName: string) => {
+    const toggleProductExpansion = (groupKey: string) => {
         const newExpanded = new Set(expandedProducts);
-        if (newExpanded.has(productName)) {
-            newExpanded.delete(productName);
+        if (newExpanded.has(groupKey)) {
+            newExpanded.delete(groupKey);
         } else {
-            newExpanded.add(productName);
+            newExpanded.add(groupKey);
         }
         setExpandedProducts(newExpanded);
     };
 
-    // Helper: Spezialformatierung für bestimmte Felder
-    const renderCellContent = (headCell: typeof headCells[0], value: any, row: OfferDataTypes) => {
-        // Produktname mit Gruppen-Expansion
-        if (headCell.id === 'productName') {
-            const productName = row.productName || 'Unbenannt';
-            const productGroup = groupedData[productName];
-            const isMultiple = productGroup && productGroup.length > 1;
-            const isFirstInGroup = isMultiple && productGroup[0].id === row.id;
-            const isExpanded = expandedProducts.has(productName);
+    const renderCellContent = (headCell: typeof headCells[0], rowData: TableRowData) => {
+        const row = rowData.data;
+        if (!row) return null;
 
-            if (isMultiple && isFirstInGroup) {
-                const displayText = `${productName} (${productGroup.length})`;
-                return (
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: 0 }}>
-                        <IconButton
-                            size="small"
-                            onClick={() => toggleProductExpansion(productName)}
-                            sx={{
-                                p: 0,
-                                minWidth: 'auto',
-                                mr: 0.5,
-                                color: 'var(--color-accent)',
-                                flexShrink: 0,
-                            }}
-                        >
-                            {isExpanded ? (
-                                <ExpandMore fontSize="small" />
-                            ) : (
-                                <ChevronRight fontSize="small" />
-                            )}
-                        </IconButton>
-                        <Box sx={{ minWidth: 0, overflow: 'hidden' }}>
-                            <TruncatedText text={displayText} maxLength={18} />
-                        </Box>
-                    </Box>
-                );
-            }
-            return <TruncatedText text={value || ''} maxLength={22} />;
+        const value = row[headCell.id];
+
+        // Produktbeschreibung: Voll lesbar, multiline
+        if (headCell.id === 'productDescription') {
+            return (
+                <span style={{ whiteSpace: 'normal', wordBreak: 'break-word', display: 'block' }}>
+                    {value || '-'}
+                </span>
+            );
         }
 
         // Preisfelder formatieren
@@ -234,13 +243,47 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
         // Standard: Truncated Text
         const maxLengths: Record<string, number> = {
             storeName: 12,
-            productDescription: 18,
             quantity: 18,
             brand: 10,
             associatedPdfFile: 15,
         };
         const maxLength = maxLengths[headCell.id as string] || 20;
         return <TruncatedText text={typeof value === 'string' ? value : value?.toString?.() ?? ''} maxLength={maxLength} />;
+    };
+
+    const renderHeaderCell = (headCell: typeof headCells[0], rowData: TableRowData) => {
+        if (headCell.id === 'productName' && rowData.groupKey && rowData.count) {
+            const isExpanded = expandedProducts.has(rowData.groupKey);
+            const grammatur = rowData.groupKey.split('__')[1];
+            const productName = rowData.groupKey.split('__')[0];
+            const displayText = `${productName}${grammatur ? `, ${grammatur}` : ''} (${rowData.count})`;
+
+            return (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: 0 }}>
+                    <IconButton
+                        size="small"
+                        onClick={() => toggleProductExpansion(rowData.groupKey!)}
+                        sx={{
+                            p: 0,
+                            minWidth: 'auto',
+                            mr: 0.5,
+                            color: 'var(--color-accent)',
+                            flexShrink: 0,
+                        }}
+                    >
+                        {isExpanded ? (
+                            <ExpandMore fontSize="small" />
+                        ) : (
+                            <ChevronRight fontSize="small" />
+                        )}
+                    </IconButton>
+                    <Box sx={{ minWidth: 0, overflow: 'hidden' }}>
+                        <TruncatedText text={displayText} maxLength={40} />
+                    </Box>
+                </Box>
+            );
+        }
+        return null;
     };
 
     return (
@@ -251,7 +294,7 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
                 sx={{ backgroundColor: 'var(--color-bg-light)' }}
             >
                 <div className="flex items-center justify-between gap-4">
-                    <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                    <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
                         <TextField
                             size="small"
                             placeholder="Suchen..."
@@ -275,6 +318,39 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
                                 },
                             }}
                         />
+
+                        <FormControl size="small" sx={{ minWidth: 120 }}>
+                            <InputLabel
+                                sx={{
+                                    color: 'var(--color-fg)',
+                                    '&.Mui-focused': { color: 'var(--color-accent)' }
+                                }}
+                            >
+                                Wettbewerber
+                            </InputLabel>
+                            <Select
+                                value={selectedStore}
+                                label="Wettbewerber"
+                                onChange={(e) => setSelectedStore(e.target.value)}
+                                sx={{
+                                    backgroundColor: 'var(--color-bg)',
+                                    color: 'var(--color-fg)',
+                                    '& fieldset': { borderColor: 'rgba(237,237,237,0.1)' },
+                                    '&:hover fieldset': { borderColor: 'rgba(237,237,237,0.3)' },
+                                    '&.Mui-focused fieldset': { borderColor: 'var(--color-accent)' },
+                                    '& .MuiSelect-icon': { color: 'var(--color-fg)' },
+                                }}
+                            >
+                                <MenuItem value="">
+                                    <em>Alle Wettbewerber</em>
+                                </MenuItem>
+                                {availableStores.map((store) => (
+                                    <MenuItem key={store} value={store}>
+                                        {store}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
 
                         <FormControl size="small" sx={{ minWidth: 120 }}>
                             <InputLabel
@@ -353,7 +429,7 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
                                     key={headCell.id}
                                     align={headCell.numeric ? 'right' : 'left'}
                                     style={{ width: headCell.width, minWidth: headCell.width, maxWidth: headCell.width }}
-                                    sx={{ ...cellSx, fontWeight: 600 }}
+                                    sx={{ ...cellSx, fontWeight: 600, whiteSpace: 'normal' }}
                                 >
                                     <TableSortLabel
                                         active={orderBy === headCell.id}
@@ -397,10 +473,14 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            paginatedData.map((row) => (
+                            paginatedData.map((rowData, rowIndex) => (
                                 <TableRow
-                                    key={row.id}
-                                    sx={{ '&:hover td': { backgroundColor: 'rgba(237,237,237,0.05)' } }}
+                                    key={rowIndex}
+                                    sx={{
+                                        '&:hover td': { backgroundColor: 'rgba(237,237,237,0.05)' },
+                                        verticalAlign: 'middle',
+                                        backgroundColor: rowData.type === 'header' ? 'rgba(237,237,237,0.08)' : 'transparent',
+                                    }}
                                 >
                                     {headCells.map((headCell) => (
                                         <TableCell
@@ -411,24 +491,31 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
                                                 width: headCell.width,
                                                 minWidth: headCell.width,
                                                 maxWidth: headCell.width,
+                                                overflow: headCell.id === 'productDescription' ? 'visible' : 'hidden',
+                                                whiteSpace: headCell.id === 'productDescription' ? 'normal' : 'nowrap',
+                                                textOverflow: headCell.id === 'productDescription' ? 'unset' : 'ellipsis',
+                                                fontWeight: rowData.type === 'header' ? 600 : 'normal',
+                                                backgroundColor: rowData.type === 'header' ? 'rgba(237,237,237,0.08)' : 'transparent',
                                             }}
                                         >
-                                            {renderCellContent(headCell, row[headCell.id], row)}
+                                            {rowData.type === 'header' ? renderHeaderCell(headCell, rowData) : renderCellContent(headCell, rowData)}
                                         </TableCell>
                                     ))}
-                                    <TableCell align="center" sx={{ ...cellSx, width: 60, minWidth: 60, maxWidth: 60 }}>
-                                        <IconButton
-                                            size="small"
-                                            onClick={() => handleDelete(row.id)}
-                                            disabled={deletingId === row.id}
-                                            sx={{ color: 'var(--color-error)' }}
-                                        >
-                                            {deletingId === row.id ? (
-                                                <CircularProgress size={16} sx={{ color: 'var(--color-error)' }} />
-                                            ) : (
-                                                <Delete fontSize="small" />
-                                            )}
-                                        </IconButton>
+                                    <TableCell align="center" sx={{ ...cellSx, width: 60, minWidth: 60, maxWidth: 60, backgroundColor: rowData.type === 'header' ? 'rgba(237,237,237,0.08)' : 'transparent' }}>
+                                        {rowData.type === 'data' && (
+                                            <IconButton
+                                                size="small"
+                                                onClick={() => handleDelete(rowData.data!.id)}
+                                                disabled={deletingId === rowData.data!.id}
+                                                sx={{ color: 'var(--color-error)' }}
+                                            >
+                                                {deletingId === rowData.data!.id ? (
+                                                    <CircularProgress size={16} sx={{ color: 'var(--color-error)' }} />
+                                                ) : (
+                                                    <Delete fontSize="small" />
+                                                )}
+                                            </IconButton>
+                                        )}
                                     </TableCell>
                                 </TableRow>
                             ))
