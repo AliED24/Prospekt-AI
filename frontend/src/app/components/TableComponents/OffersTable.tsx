@@ -100,7 +100,6 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
         setOrderBy(property);
     };
 
-    // Eindeutige KW-Werte extrahieren
     const availableKWs = useMemo(() => {
         const kwSet = new Set<number>();
         data.forEach((offer) => {
@@ -169,6 +168,79 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
             newExpanded.add(productName);
         }
         setExpandedProducts(newExpanded);
+    };
+
+    // Helper: Spezialformatierung für bestimmte Felder
+    const renderCellContent = (headCell: typeof headCells[0], value: any, row: OfferDataTypes) => {
+        // Produktname mit Gruppen-Expansion
+        if (headCell.id === 'productName') {
+            const productName = row.productName || 'Unbenannt';
+            const productGroup = groupedData[productName];
+            const isMultiple = productGroup && productGroup.length > 1;
+            const isFirstInGroup = isMultiple && productGroup[0].id === row.id;
+            const isExpanded = expandedProducts.has(productName);
+
+            if (isMultiple && isFirstInGroup) {
+                const displayText = `${productName} (${productGroup.length})`;
+                return (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: 0 }}>
+                        <IconButton
+                            size="small"
+                            onClick={() => toggleProductExpansion(productName)}
+                            sx={{
+                                p: 0,
+                                minWidth: 'auto',
+                                mr: 0.5,
+                                color: 'var(--color-accent)',
+                                flexShrink: 0,
+                            }}
+                        >
+                            {isExpanded ? (
+                                <ExpandMore fontSize="small" />
+                            ) : (
+                                <ChevronRight fontSize="small" />
+                            )}
+                        </IconButton>
+                        <Box sx={{ minWidth: 0, overflow: 'hidden' }}>
+                            <TruncatedText text={displayText} maxLength={18} />
+                        </Box>
+                    </Box>
+                );
+            }
+            return <TruncatedText text={value || ''} maxLength={22} />;
+        }
+
+        // Preisfelder formatieren
+        // @ts-ignore
+        if (['originalPrice', 'price', 'appPrice'].includes(headCell.id)) {
+            return (
+                <span
+                    style={
+                        headCell.id !== 'originalPrice'
+                            ? { color: 'var(--color-success)', fontWeight: 500 }
+                            : undefined
+                    }
+                >
+                    {formatPrice(value)}
+                </span>
+            );
+        }
+
+        // Calendar Week als Nummer
+        if (headCell.id === 'calenderWeek') {
+            return value || '-';
+        }
+
+        // Standard: Truncated Text
+        const maxLengths: Record<string, number> = {
+            storeName: 12,
+            productDescription: 18,
+            quantity: 18,
+            brand: 10,
+            associatedPdfFile: 15,
+        };
+        const maxLength = maxLengths[headCell.id as string] || 20;
+        return <TruncatedText text={typeof value === 'string' ? value : value?.toString?.() ?? ''} maxLength={maxLength} />;
     };
 
     return (
@@ -256,7 +328,6 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
                         >
                             Excel Export
                         </Button>
-
                     </div>
                 </div>
             </Paper>
@@ -331,82 +402,21 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
                                     key={row.id}
                                     sx={{ '&:hover td': { backgroundColor: 'rgba(237,237,237,0.05)' } }}
                                 >
-                                    <TableCell sx={{ ...cellSx, width: 180 }}>
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: 0 }}>
-                                            {(() => {
-                                                const productName = row.productName || 'Unbenannt';
-                                                const productGroup = groupedData[productName];
-                                                const isMultiple = productGroup && productGroup.length > 1;
-                                                const isFirstInGroup = isMultiple && productGroup[0].id === row.id;
-                                                const isExpanded = expandedProducts.has(productName);
-                                                
-                                                if (isMultiple && isFirstInGroup) {
-                                                    const displayText = `${productName} (${productGroup.length})`;
-                                                    return (
-                                                        <>
-                                                            <IconButton
-                                                                size="small"
-                                                                onClick={() => toggleProductExpansion(productName)}
-                                                                sx={{
-                                                                    p: 0,
-                                                                    minWidth: 'auto',
-                                                                    mr: 0.5,
-                                                                    color: 'var(--color-accent)',
-                                                                    flexShrink: 0,
-                                                                }}
-                                                            >
-                                                                {isExpanded ? (
-                                                                    <ExpandMore fontSize="small" />
-                                                                ) : (
-                                                                    <ChevronRight fontSize="small" />
-                                                                )}
-                                                            </IconButton>
-                                                            <Box sx={{ minWidth: 0, overflow: 'hidden' }}>
-                                                                <TruncatedText text={displayText} maxLength={18} />
-                                                            </Box>
-                                                        </>
-                                                    );
-                                                } else {
-                                                    return <TruncatedText text={row.productName || ''} maxLength={22} />;
-                                                }
-                                            })()}
-                                        </Box>
-                                    </TableCell>
-                                    <TableCell sx={{ ...cellSx, width: 110 }}>
-                                        <TruncatedText text={row.storeName || ''} maxLength={12} />
-                                    </TableCell>
-                                    <TableCell sx={{ ...cellSx, width: 155 }}>
-                                        <TruncatedText text={row.productDescription || ''} maxLength={18} />
-                                    </TableCell>
-                                    <TableCell align="right" sx={{ ...cellSx, width: 95 }}>
-                                        {formatPrice(row.originalPrice)}
-                                    </TableCell>
-                                    <TableCell align="right" sx={{ ...cellSx, width: 95 }}>
-                                        <span style={{ color: 'var(--color-success)', fontWeight: 500 }}>
-                                            {formatPrice(row.price)}
-                                        </span>
-                                    </TableCell>
-                                    <TableCell align="right" sx={{ ...cellSx, width: 85 }}>
-                                        <span style={{ color: 'var(--color-success)', fontWeight: 500 }}>
-                                            {formatPrice(row.appPrice)}
-                                        </span>
-                                    </TableCell>
-                                    <TableCell sx={{ ...cellSx, width: 90 }}>
-                                        {row.offerDateStart || '-'}
-                                    </TableCell>
-                                    <TableCell sx={{ ...cellSx, width: 90 }}>
-                                        {row.offerDateEnd || '-'}
-                                    </TableCell>
-                                    <TableCell align="right" sx={{ ...cellSx, width: 60 }}>
-                                        {row.calenderWeek || '-'}
-                                    </TableCell>
-                                    <TableCell sx={{ ...cellSx, width: 100 }}>
-                                        <TruncatedText text={row.brand || ''} maxLength={10} />
-                                    </TableCell>
-                                    <TableCell sx={{ ...cellSx, width: 140 }}>
-                                        <TruncatedText text={row.associatedPdfFile || ''} maxLength={15} />
-                                    </TableCell>
-                                    <TableCell align="center" sx={{ ...cellSx, width: 60 }}>
+                                    {headCells.map((headCell) => (
+                                        <TableCell
+                                            key={headCell.id}
+                                            align={headCell.numeric ? 'right' : 'left'}
+                                            sx={{
+                                                ...cellSx,
+                                                width: headCell.width,
+                                                minWidth: headCell.width,
+                                                maxWidth: headCell.width,
+                                            }}
+                                        >
+                                            {renderCellContent(headCell, row[headCell.id], row)}
+                                        </TableCell>
+                                    ))}
+                                    <TableCell align="center" sx={{ ...cellSx, width: 60, minWidth: 60, maxWidth: 60 }}>
                                         <IconButton
                                             size="small"
                                             onClick={() => handleDelete(row.id)}

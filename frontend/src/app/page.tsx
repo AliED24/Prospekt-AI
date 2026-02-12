@@ -120,7 +120,7 @@ export default function OffersPage() {
                             disabled={isUploading}
                             className="!border-accent !text-accent hover:!bg-accent/10"
                         >
-                            {isUploading ? 'Verarbeite...' : 'PDF(s) hochladen'}
+                            {isUploading ? 'Verarbeite...' : 'Upload PDF'}
                         </Button>
                     </div>
                 </div>

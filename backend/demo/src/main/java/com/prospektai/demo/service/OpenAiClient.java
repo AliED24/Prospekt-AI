@@ -61,6 +61,7 @@ public class OpenAiClient {
                                         Map.entry("productName", Map.of("type", "string")),
                                         Map.entry("brand", Map.of("type", "string", "nullable", true)),
                                         Map.entry("productDescription", Map.of("type", "string")),
+                                        Map.entry("grammar", Map.of("type", "string", "nullable", false)),
                                         Map.entry("quantity", Map.of("type", "string")),
                                         Map.entry("price", Map.of("type", "number")),
                                         Map.entry("originalPrice", Map.of("type", "string", "nullable", true)),
@@ -68,8 +69,9 @@ public class OpenAiClient {
                                         Map.entry("offerDateStart", Map.of("type", "string")),
                                         Map.entry("offerDateEnd", Map.of("type", "string")),
                                         Map.entry("calenderWeek", Map.of("type", "number"))
+
                                 ),
-                                                "required", List.of("storeName","productName","productDescription","quantity","brand","originalPrice","price","appPrice","offerDateStart","offerDateEnd","calenderWeek"),
+                                                "required", List.of("storeName","productName","productDescription","grammar","quantity","brand","originalPrice","price","appPrice","offerDateStart","offerDateEnd","calenderWeek"),
                                                 "additionalProperties", false
                                         )
                                 )),

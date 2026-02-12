@@ -18,6 +18,7 @@ public class OfferEntity {
         private Long id;
         private String storeName;
         private String productName;
+        private String grammar;
         private String brand;
         private String productDescription;
         private String quantity;

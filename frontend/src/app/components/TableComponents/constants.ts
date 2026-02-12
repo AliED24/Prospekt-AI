@@ -2,6 +2,7 @@ import { HeadCell } from './types';
 
 export const headCells: HeadCell[] = [
     { id: 'productName', label: 'Produktname', numeric: false, width: 180 },
+    { id: 'quantity', label: 'Grammatur', numeric: false, width: 80 },
     { id: 'storeName', label: 'Wettbewerber', numeric: false, width: 110 },
     { id: 'productDescription', label: 'Produktbeschreibung', numeric: false, width: 155 },
     { id: 'originalPrice', label: 'Originalpreis', numeric: true, width: 95 },
