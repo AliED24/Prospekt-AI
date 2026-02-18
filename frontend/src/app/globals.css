@@ -1,13 +1,21 @@
 @import "tailwindcss";
-
-@theme inline {
-  /* Farben */
+:root {
+  /* Primäre Farben */
   --color-bg: #343434;
   --color-bg-light: #3d3d3d;
+  --color-bg-header-dark: #494949;
+  --color-bg-expanded-light: #424242;
   --color-fg: #ededed;
+
+  /* Accent & Zustände */
   --color-accent: #fce531;
   --color-success: #4ade80;
   --color-error: #ef4444;
+
+  /* Borders & Divider */
+  --color-border: #ededed;
+  --color-border-light: #5a5a5a;
+  --color-border-hover: #7a7a7a;
 }
 
 body {

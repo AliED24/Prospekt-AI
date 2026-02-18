@@ -39,10 +39,14 @@ interface OffersTableProps {
     onDelete: (id: number) => Promise<void>;
 }
 
+// ============================================================================
+// STYLING KONSTANTEN
+// ============================================================================
+
 const cellSx = {
     backgroundColor: 'var(--color-bg-light)',
     color: 'var(--color-fg)',
-    borderBottom: '1px solid rgba(237,237,237,0.1)',
+    borderBottom: `1px solid var(--color-border-light)`,
     padding: '12px 12px',
     height: '64px',
     minHeight: '64px',
@@ -71,6 +75,7 @@ interface TableRowData {
     data: OfferDataTypes | null;
     groupKey?: string;
     count?: number;
+    isExpanded?: boolean; // Neu: Zeigt ob die Gruppe expandiert ist
 }
 
 export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
@@ -109,7 +114,6 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
         setOrderBy(property);
     };
 
-    // Verfügbare KWs ermitteln
     const availableKWs = useMemo(() => {
         const kwSet = new Set<number>();
         data.forEach((offer) => {
@@ -120,7 +124,6 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
         return Array.from(kwSet).sort((a, b) => a - b);
     }, [data]);
 
-    // Verfügbare Wettbewerber/Stores ermitteln
     const availableStores = useMemo(() => {
         const storeSet = new Set<string>();
         data.forEach((offer) => {
@@ -161,27 +164,35 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
         return groups;
     }, [sortedData]);
 
+    // ÄNDERUNG: Behalte Informationen über expandierte Gruppen bei jeder Zeile
     const tableRows = useMemo(() => {
         const rows: TableRowData[] = [];
         Object.entries(groupedData).forEach(([groupKey, items]) => {
+            const isExpanded = expandedProducts.has(groupKey);
+
             if (items.length === 1) {
                 rows.push({
                     type: 'data',
                     data: items[0],
+                    isExpanded: false,
                 });
             } else {
+                // Header-Zeile
                 rows.push({
                     type: 'header',
                     data: null,
                     groupKey,
                     count: items.length,
+                    isExpanded,
                 });
 
-                if (expandedProducts.has(groupKey)) {
+                // Daten-Zeilen (nur wenn expandiert)
+                if (isExpanded) {
                     items.forEach(item => {
                         rows.push({
                             type: 'data',
                             data: item,
+                            isExpanded: true,
                         });
                     });
                 }
@@ -210,7 +221,6 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
 
         const value = row[headCell.id];
 
-        // Produktbeschreibung: Voll lesbar, multiline
         if (headCell.id === 'productDescription') {
             return (
                 <span style={{ whiteSpace: 'normal', wordBreak: 'break-word', display: 'block' }}>
@@ -219,7 +229,6 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
             );
         }
 
-        // Preisfelder formatieren
         // @ts-ignore
         if (['originalPrice', 'price', 'appPrice'].includes(headCell.id)) {
             return (
@@ -235,12 +244,10 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
             );
         }
 
-        // Calendar Week als Nummer
         if (headCell.id === 'calenderWeek') {
             return value || '-';
         }
 
-        // Standard: Truncated Text
         const maxLengths: Record<string, number> = {
             storeName: 12,
             quantity: 18,
@@ -286,12 +293,25 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
         return null;
     };
 
+    const getRowBackgroundColor = (rowData: TableRowData) => {
+        if (rowData.type === 'header') {
+            return 'var(--color-bg-header-dark)';
+        }
+        if (rowData.isExpanded && rowData.type === 'data') {
+            return 'var(--color-bg-expanded-light)';
+        }
+        return 'transparent';
+    };
+
     return (
         <div>
             <Paper
                 elevation={0}
-                className="mb-4 p-4 border border-fg/10"
-                sx={{ backgroundColor: 'var(--color-bg-light)' }}
+                className="mb-4 p-4 border"
+                sx={{
+                    backgroundColor: 'var(--color-bg-light)',
+                    borderColor: 'var(--color-border-light)',
+                }}
             >
                 <div className="flex items-center justify-between gap-4">
                     <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -305,14 +325,14 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
                                 input: {
                                     startAdornment: (
                                         <InputAdornment position="start">
-                                            <Search sx={{ color: 'var(--color-fg)', opacity: 0.4 }} />
+                                            <Search sx={{ color: 'var(--color-fg)', opacity: 0.5 }} />
                                         </InputAdornment>
                                     ),
                                     sx: {
                                         backgroundColor: 'var(--color-bg)',
                                         color: 'var(--color-fg)',
-                                        '& fieldset': { borderColor: 'rgba(237,237,237,0.1)' },
-                                        '&:hover fieldset': { borderColor: 'rgba(237,237,237,0.3)' },
+                                        '& fieldset': { borderColor: 'var(--color-border-light)' },
+                                        '&:hover fieldset': { borderColor: 'var(--color-border-hover)' },
                                         '&.Mui-focused fieldset': { borderColor: 'var(--color-accent)' },
                                     },
                                 },
@@ -335,8 +355,8 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
                                 sx={{
                                     backgroundColor: 'var(--color-bg)',
                                     color: 'var(--color-fg)',
-                                    '& fieldset': { borderColor: 'rgba(237,237,237,0.1)' },
-                                    '&:hover fieldset': { borderColor: 'rgba(237,237,237,0.3)' },
+                                    '& fieldset': { borderColor: 'var(--color-border-light)' },
+                                    '&:hover fieldset': { borderColor: 'var(--color-border-hover)' },
                                     '&.Mui-focused fieldset': { borderColor: 'var(--color-accent)' },
                                     '& .MuiSelect-icon': { color: 'var(--color-fg)' },
                                 }}
@@ -368,8 +388,8 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
                                 sx={{
                                     backgroundColor: 'var(--color-bg)',
                                     color: 'var(--color-fg)',
-                                    '& fieldset': { borderColor: 'rgba(237,237,237,0.1)' },
-                                    '&:hover fieldset': { borderColor: 'rgba(237,237,237,0.3)' },
+                                    '& fieldset': { borderColor: 'var(--color-border-light)' },
+                                    '&:hover fieldset': { borderColor: 'var(--color-border-hover)' },
                                     '&.Mui-focused fieldset': { borderColor: 'var(--color-accent)' },
                                     '& .MuiSelect-icon': { color: 'var(--color-fg)' },
                                 }}
@@ -394,11 +414,11 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
                             onClick={handleExport}
                             disabled={!data.length}
                             sx={{
-                                borderColor: 'rgba(237,237,237,0.4)',
+                                borderColor: 'var(--color-border-light)',
                                 color: 'var(--color-fg)',
                                 '&:hover': {
                                     borderColor: 'var(--color-fg)',
-                                    backgroundColor: 'rgba(237,237,237,0.1)',
+                                    backgroundColor: 'var(--color-bg)',
                                 },
                             }}
                         >
@@ -411,9 +431,10 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
             <TableContainer
                 component={Paper}
                 elevation={0}
-                className="max-h-[calc(100vh-300px)] border border-fg/10"
+                className="max-h-[calc(100vh-300px)] border"
                 sx={{
                     backgroundColor: 'var(--color-bg-light)',
+                    borderColor: 'var(--color-border-light)',
                     '&::-webkit-scrollbar': {
                         display: 'none'
                     },
@@ -455,7 +476,7 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
                                 <TableRow key={i}>
                                     {headCells.map((_, j) => (
                                         <TableCell key={j} sx={cellSx}>
-                                            <Skeleton variant="text" sx={{ bgcolor: 'rgba(237,237,237,0.15)' }} />
+                                            <Skeleton variant="text" sx={{ bgcolor: 'var(--color-border-light)' }} />
                                         </TableCell>
                                     ))}
                                     <TableCell sx={cellSx} />
@@ -477,9 +498,9 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
                                 <TableRow
                                     key={rowIndex}
                                     sx={{
-                                        '&:hover td': { backgroundColor: 'rgba(237,237,237,0.05)' },
+                                        '&:hover td': { backgroundColor: 'var(--color-bg)' },
                                         verticalAlign: 'middle',
-                                        backgroundColor: rowData.type === 'header' ? 'rgba(237,237,237,0.08)' : 'transparent',
+                                        backgroundColor: getRowBackgroundColor(rowData),
                                     }}
                                 >
                                     {headCells.map((headCell) => (
@@ -495,13 +516,22 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
                                                 whiteSpace: headCell.id === 'productDescription' ? 'normal' : 'nowrap',
                                                 textOverflow: headCell.id === 'productDescription' ? 'unset' : 'ellipsis',
                                                 fontWeight: rowData.type === 'header' ? 600 : 'normal',
-                                                backgroundColor: rowData.type === 'header' ? 'rgba(237,237,237,0.08)' : 'transparent',
+                                                backgroundColor: getRowBackgroundColor(rowData),
                                             }}
                                         >
                                             {rowData.type === 'header' ? renderHeaderCell(headCell, rowData) : renderCellContent(headCell, rowData)}
                                         </TableCell>
                                     ))}
-                                    <TableCell align="center" sx={{ ...cellSx, width: 60, minWidth: 60, maxWidth: 60, backgroundColor: rowData.type === 'header' ? 'rgba(237,237,237,0.08)' : 'transparent' }}>
+                                    <TableCell
+                                        align="center"
+                                        sx={{
+                                            ...cellSx,
+                                            width: 60,
+                                            minWidth: 60,
+                                            maxWidth: 60,
+                                            backgroundColor: getRowBackgroundColor(rowData),
+                                        }}
+                                    >
                                         {rowData.type === 'data' && (
                                             <IconButton
                                                 size="small"
@@ -540,10 +570,10 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
                 sx={{
                     backgroundColor: 'var(--color-bg-light)',
                     color: 'var(--color-fg)',
-                    borderTop: '1px solid rgba(237,237,237,0.1)',
+                    borderTop: `1px solid var(--color-border-light)`,
                     '& .MuiTablePagination-selectIcon': { color: 'var(--color-fg)' },
                     '& .MuiTablePagination-actions .MuiIconButton-root': { color: 'var(--color-fg)' },
-                    '& .MuiTablePagination-actions .Mui-disabled': { color: 'rgba(237,237,237,0.3)' },
+                    '& .MuiTablePagination-actions .Mui-disabled': { color: 'var(--color-border-light)' },
                 }}
             />
         </div>
