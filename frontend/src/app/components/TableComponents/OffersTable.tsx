@@ -154,13 +154,21 @@ export function OffersTable({ data, isLoading, onDelete }: OffersTableProps) {
 
     const groupedData = useMemo(() => {
         const groups: Record<string, OfferDataTypes[]> = {};
+
         sortedData.forEach((item) => {
-            const key = `${item.productName || 'Unbenannt'}__${item.quantity || ''}`;
+            // Normalisiere die Menge (entferne Leerzeichen, standardisiere Format)
+            const normalizedQuantity = (item.quantity || '')
+                .toString()
+                .toLowerCase()
+                .trim()
+                .replace(/\s+/g, '');
+            const key = `${item.productName || 'Unbenannt'}__${normalizedQuantity}`;
             if (!groups[key]) {
                 groups[key] = [];
             }
             groups[key].push(item);
         });
+
         return groups;
     }, [sortedData]);
 
