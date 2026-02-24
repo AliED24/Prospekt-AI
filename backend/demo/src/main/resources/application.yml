@@ -6,7 +6,7 @@ spring:
     time-zone: Europe/Berlin
 
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/meinedb}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5433/meinedb}
     username: ${SPRING_DATASOURCE_USERNAME:meinuser}
     password: ${SPRING_DATASOURCE_PASSWORD:meinpasswort}
     driver-class-name: org.postgresql.Driver
@@ -53,6 +53,8 @@ spring:
         the storeName is consistent it does not change on the pages!, use the storeName from the first page.
         the storeName is not on top of a product, it is on the top of the page, just use the storeName from the first page.
         If the AppPrice is not shown, leave it empty.
+        Make sure the AppPrice is not confused with the original price, if there are two prices, the higher one is the original price and the lower one is the offer Price, and if
+        there is an additional price marked as AppPrice, then capture it in the AppPrice field.
         please detect the calenderWeek of the offerDateStart and offerDateEnd and return it as calenderWeek.
         Add the productDescription, like weights,size amount, grammar etc.
 
